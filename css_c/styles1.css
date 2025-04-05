@@ -1,0 +1,110 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #74b9ff, #81ecec); /* Gradient từ tím sang xanh */
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.register-form {
+    background: rgba(255, 255, 255, 0.9); /* Nền trắng mờ */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 350px;
+}
+
+.register-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 60px ;
+}
+
+.register-form label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+    color: #555;
+    font-size: larger;
+}
+
+.register-form input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 0px;
+    border: 3px solid #ccc;
+    border-radius: 4px;
+    font-size:  20px;
+}
+
+.register-form div {
+    display: none;
+    color: red;
+    font-size: medium;
+    justify-content: center;
+    align-items: center;
+    height: 35px;
+    width: 200px;
+}
+
+.register-form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: #2925fc;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 25.5px;
+}
+
+.register-form button:hover {
+    background: #0f20b8;
+}
+
+.register-form p {
+    text-align: center;
+    margin-top: 15px;
+    font-size: larger;
+}
+
+.register-form a {
+    color: #2600ff;
+    text-decoration: none;
+}
+
+
+.register-form select {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 3px solid #ccc;
+    border-radius: 4px;
+    font-size: 20px;
+}
+
+#roleerror {
+    display: none;
+    color: red;
+    font-size: medium;
+    justify-content: center;
+    align-items: center;
+    height: 35px;
+    width: 200px;
+}
+
+#nameerror, #fullnameerror, #emailerror, #passworderror, #confirmpassworderror, #roleerror {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none;
+}
+

@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng Dụng Trắc Nghiệm Tự Nhập</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        .button-container {
+            position: fixed; /* Cố định vị trí */
+            bottom: 20px; /* Cách đáy 20px */
+            right: 20px; /* Cách lề phải 20px */
+            display: flex; /* Xếp các nút ngang hàng */
+            gap: 10px; /* Khoảng cách giữa các nút */
+            z-index: 1000; /* Đảm bảo nút luôn hiển thị trên các phần tử khác */
+            background-color: white; /* Nền trắng (nếu cần) */
+            padding: 10px; /* Thêm padding để trông đẹp hơn */
+            border-radius: 5px; /* Bo góc */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+        }
+
+        .btn-submit {
+            background-color: #dc3545;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-submit:hover {
+            background-color: #218838;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        
+
+        .btn-back:hover {
+            background-color: #0056b3;
+            cursor: pointer;
+        }
+
+        .question-container {
+            margin-bottom: 15px;
+        }
+
+        #quizContent {
+            display: none;
+        }
+
+        .result-message {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .btn-start {
+            position: absolute;
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            background-color: #3355ff !important;
+            color: white;
+            font-weight: bold;
+            border: 2px solid #1d3acc;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            top: 20px;
+            right: 20px;
+            cursor: pointer
+            
+        }
+        .btn-start:disabled {
+            background-color: #3355ff !important;
+            color: white !important;
+            opacity: 1 !important;
+        }
+        .back-button{
+            position: absolute;
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            background-color: #3355ff !important;
+            color: white;
+            font-weight: bold;
+            border: 2px solid #1d3acc;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            top: 20px;
+            right: 135px;
+            cursor: pointer;
+        }
+
+        .btn-start:hover {
+            background-color:#3355ff;
+            cursor: pointer;
+        }
+
+        .back-button:hover{
+            background-color: #3355ff;
+            cursor: pointer;
+        }
+
+        #scoreDisplayTop {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            font-size: 18px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .alert {
+            color: rgba(236, 25, 25, 0.919);
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: rgba(255, 0, 0, 0.984);
+        }
+
+        .correct {
+            color: rgb(0, 110, 255);
+        }
+
+        /* Làm cho checkbox to hơn */
+        input[type="checkbox"] {
+            width: 25px; /* Chiều rộng */
+            height: 25px; /* Chiều cao */
+            margin-right: 10px; /* Khoảng cách giữa checkbox và văn bản */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="quiz-container">
+            <h1 class="text-center">ĐỀ THI TRẮC NGHIỆM</h1>
+            <div id="fileListSection" class="mt-4">
+                <button type="button" class="btn btn-info" onclick="toggleFileList()">Hiển thị File Đã Lưu</button>
+                <ul id="fileList" class="mt-3"></ul>
+            </div>
+            <br>
+            <div id="fileInputSection" class="mb-4">
+                <label for="fileInput" class="form-label">Chọn File Word:</label>
+                <input type="file" id="fileInput" class="form-control" accept=".docx">
+                <br>
+                <button type="button" class="btn btn-primary" onclick="saveFileToIndexedDB()">Lưu File</button>
+                <div id="fileUploadFeedback" class="mt-3"></div>
+            </div>
+
+            <div id="feedback" class="mt-4 text-center"></div> <!-- Thông báo sẽ hiển thị ở đây -->
+
+
+            <div id="manualQuestionSection" class="mb-4">      
+                <form id="add-question-form">
+                    <h2 class="text-primary">Tạo Câu Hỏi Thủ Công </h2>
+                    <div class="form-group">
+                        <label for="question">Nhập Câu hỏi:</label>
+                        <input type="text" class="form-control" id="question" name="question" required oninput="toggleAddQuestionButton()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="optionA">Đáp án A:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionA" name="optionA" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctA" onclick="toggleCorrectAnswer('A')"> Đúng
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionB">Đáp án B:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionB" name="optionB" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctB" onclick="toggleCorrectAnswer('B')"> Đúng
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionC">Đáp án C:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionC" name="optionC" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctC" onclick="toggleCorrectAnswer('C')"> Đúng
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionD">Đáp án D:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionD" name="optionD" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctD" onclick="toggleCorrectAnswer('D')"> Đúng
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" id="addQuestionButton" onclick="addQuestion()" disabled>Thêm câu hỏi</button>
+                </form>
+            </div>
+
+            <div id="addedQuestionsContainer" class="mt-4">
+                <!-- Hiển thị các câu hỏi đã thêm ở đây -->
+            </div>
+
+            <div id="quizContent" class="mt-4">
+                <!-- Nội dung câu hỏi thêm ở đây -->
+            </div>
+
+            <button id="startBtn" class="btn btn-start" onclick="startQuiz()" disabled>Làm Bài</button>
+            <button id="submitBtn" class="btn btn-submit" onclick="submitQuiz()" style="display: none;">Nộp Bài</button>
+            <button id="backBtn" class="btn btn-back" onclick="backToStart()">Quay Lại</button>
+            <button class="back-button" id="back" onclick="goBack()">Quay lại</button>
+            <div id="scoreDisplayTop">
+                Điểm số: <span id="scoreValueTop"></span>
+            </div>
+
+            <div id="resultSection" class="result-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // tạo lưu trữ
+        let db;
+        // Hàm mở IndexedDB
+        function openDB(callback) {
+            if (db) {
+                callback();
+                return;
+            }
+
+            const request = indexedDB.open("FileStorageDB", 4);
+
+            request.onupgradeneeded = function (event) {
+                db = event.target.result;
+
+                if (!db.objectStoreNames.contains("dsfiles")) {
+                    db.createObjectStore("dsfiles", { keyPath: "id" });
+                }
+
+                if (!db.objectStoreNames.contains("files")) {
+                    db.createObjectStore("files", { keyPath: "id" });
+                }
+
+                if (!db.objectStoreNames.contains("tlnfiles")) {
+                    db.createObjectStore("tlnfiles", { keyPath: "id" });
+                }
+
+                if (!db.objectStoreNames.contains("rank")) {
+                    const rankStore = db.createObjectStore("rank", { keyPath: "name" }); // Sử dụng tên làm key
+                    rankStore.createIndex("score", "score", { unique: false });
+                }
+            };
+            
+
+            request.onsuccess = function (event) {
+                db = event.target.result;
+                //console.log("✅ IndexedDB đã mở thành công!");
+                callback();
+            };
+
+            request.onerror = function (event) {
+                console.error("❌ Lỗi mở IndexedDB:", event.target.error);
+                showFeedback("Không thể mở IndexedDB!", "red");
+            };
+        }
+
+        // Hàm lưu file vào IndexedDB
+        function saveFileToIndexedDB() {
+            openDB(() => {
+                const fileInput = document.getElementById("fileInput");
+                if (!fileInput || fileInput.files.length === 0) {
+                    showFeedback("❌ Vui lòng chọn một file!", "red");
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                //console.log("📂 File được chọn:", file);
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileData = event.target.result;
+
+                    const transaction = db.transaction(["dsfiles"], "readwrite");
+                    const store = transaction.objectStore("dsfiles");
+
+                    const uniqueId = 'DS-' + crypto.randomUUID(); // Tạo ID duy nhất
+                    const fileRecord = { id: uniqueId, name: file.name, content: fileData };
+
+                    const request = store.put(fileRecord);
+
+                    request.onsuccess = function () {
+                        console.log("✅ File đã lưu thành công!");
+                        showFeedback("Lưu file thành công!", "green");
+                    };
+
+                    request.onerror = function (event) {
+                        console.error("❌ Lỗi lưu file:", event.target.error);
+                        showFeedback("Lưu file thất bại!", "red");
+                    };
+                };
+
+                reader.onerror = function () {
+                    console.error("❌ Lỗi đọc file!");
+                    showFeedback("Lỗi khi đọc file!", "red");
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Hiển thị thông báo trên giao diện
+        function showFeedback(message, color) {
+            const feedback = document.getElementById("feedback");
+            feedback.innerText = message;
+            feedback.style.color = color;
+            setTimeout(() => {
+                feedback.innerText = "";
+            }, 1000);
+        }
+
+        //// hiện thị list
+        function toggleFileList() {
+            const fileList = document.getElementById("fileList");
+            
+            if (!fileList) {
+                console.error("Phần tử fileList không tồn tại. Vui lòng kiểm tra lại ID của phần tử này.");
+                return;
+            }
+            
+            // Đặt trạng thái mặc định nếu chưa được đặt
+            //if (!fileList.style.display) {fileList.style.display = "none";}
+        
+            if (fileList.style.display === "none" || fileList.style.display === "")  {
+                fileList.style.display = "block";
+                listAllFiles();
+            } else {
+                fileList.style.display = "none";
+            }
+        }
+
+        function listAllFiles() {
+            openDB(() => {  // Đảm bảo DB đã mở trước khi truy vấn
+                const transaction = db.transaction(["dsfiles"], "readonly");
+                const store = transaction.objectStore("dsfiles");
+                const request = store.getAll();
+        
+                request.onsuccess = function (event) {
+                    const files = event.target.result;
+                    const fileList = document.getElementById("fileList");
+                    fileList.innerHTML = ""; // Xóa danh sách cũ trước khi cập nhật
+        
+                    if (files.length > 0) {
+                        // Tạo bảng để hiển thị danh sách file
+                        const table = document.createElement("table");
+                        table.style.width = "100%";
+                        table.style.borderCollapse = "collapse";
+        
+                        // Tạo tiêu đề bảng
+                        const thead = document.createElement("thead");
+                        thead.innerHTML = `
+                            <tr style="background: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">📄 Tên File</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">📥 Tải Xuống</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">❌ Xóa</th>
+                            </tr>
+                        `;
+                        table.appendChild(thead);
+        
+                        // Tạo phần thân bảng
+                        const tbody = document.createElement("tbody");
+        
+                        files.forEach(file => {
+                            const row = document.createElement("tr");
+        
+                            // Ô tên file
+                            const fileNameCell = document.createElement("td");
+                            fileNameCell.textContent = file.name;
+                            fileNameCell.style.border = "1px solid #ddd";
+                            fileNameCell.style.padding = "8px";
+                            fileNameCell.style.cursor = "pointer";
+                            fileNameCell.style.color = "blue";
+                            fileNameCell.style.textDecoration = "underline";
+                            
+                            // Khi nhấn vào tên file, sẽ mở bài làm
+                            fileNameCell.onclick = function () {
+                                loadFileForQuiz(file.id);
+                            };
+                            
+        
+                            // Ô nút tải xuống
+                            const downloadCell = document.createElement("td");
+                            downloadCell.style.textAlign = "center";
+                            downloadCell.style.border = "1px solid #ddd";
+                            downloadCell.style.padding = "8px";
+        
+                            const downloadBtn = document.createElement("button");
+                            downloadBtn.textContent = "📥 Tải xuống";
+                            downloadBtn.style.backgroundColor = "#28a745"; // Màu xanh lá
+                            downloadBtn.style.color = "white";
+                            downloadBtn.style.border = "none";
+                            downloadBtn.style.padding = "5px 10px";
+                            downloadBtn.style.borderRadius = "5px";
+                            downloadBtn.style.cursor = "pointer";
+                            downloadBtn.onclick = function() {
+                                downloadFile(file);
+                            };
+                            downloadCell.appendChild(downloadBtn);
+        
+                            // Ô nút xóa
+                            const deleteCell = document.createElement("td");
+                            deleteCell.style.textAlign = "center";
+                            deleteCell.style.border = "1px solid #ddd";
+                            deleteCell.style.padding = "8px";
+        
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.textContent = "❌ Xóa";
+                            deleteBtn.style.backgroundColor = "#dc3545"; // Màu đỏ
+                            deleteBtn.style.color = "white";
+                            deleteBtn.style.border = "none";
+                            deleteBtn.style.padding = "5px 10px";
+                            deleteBtn.style.borderRadius = "5px";
+                            deleteBtn.style.cursor = "pointer";
+                            deleteBtn.onclick = function() {
+                                deleteFile(file.id);
+                            };
+                            deleteCell.appendChild(deleteBtn);
+        
+                            // Thêm các ô vào hàng
+                            row.appendChild(fileNameCell);
+                            row.appendChild(downloadCell);
+                            row.appendChild(deleteCell);
+        
+                            // Thêm hàng vào tbody
+                            tbody.appendChild(row);
+                        });
+        
+                        table.appendChild(tbody);
+                        fileList.appendChild(table);
+                    } else {
+                        fileList.innerHTML = "<p style='text-align:center;'>Không có file nào trong kho lưu trữ</p>";
+                    }
+                };
+        
+                request.onerror = function () {
+                    alert("Lỗi khi truy cập danh sách file!");
+                };
+            });
+            // hàm download file
+            function downloadFile(file) {
+                const link = document.createElement("a");
+                link.href = file.content; // Nội dung file ở dạng base64
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            /// hàm xóa file
+            function deleteFile(fileId) {
+                openDB(() => {
+                    const transaction = db.transaction(["dsfiles"], "readwrite");
+                    const store = transaction.objectStore("dsfiles");
+                    const request = store.delete(fileId);
+            
+                    request.onsuccess = function () {
+                        //alert("File đã được xóa!");
+                        listAllFiles(); // Cập nhật lại danh sách file sau khi xóa
+                    };
+            
+                    request.onerror = function () {
+                        alert("Lỗi khi xóa file!");
+                    };
+                });
+            }
+        }
+
+               /// hàm đẩy lên làm bài lại 
+               function loadFileForQuiz(fileId) {
+                openDB(() => {
+                    const transaction = db.transaction(["dsfiles"], "readonly");
+                    const store = transaction.objectStore("dsfiles");
+                    const request = store.get(fileId);
+            
+                    request.onsuccess = function (event) {
+                        const file = event.target.result;
+                        if (file) {
+                            mammoth.extractRawText({ arrayBuffer: base64ToArrayBuffer(file.content.split(",")[1]) })
+                                .then(function(output) {
+                                    parseQuestions(output.value);
+                                    isFileLoaded = true; // Đánh dấu file đã được nạp
+                                    updateStartButtonState(); // Cập nhật trạng thái nút "Làm bài"
+                                    startQuiz(); // Chuyển sang giao diện làm bài
+                                })
+                                .catch(function(err) {
+                                    alert("Không thể đọc file trắc nghiệm.");
+                                    console.error(err);
+                                });
+                        } else {
+                            alert("Không tìm thấy file!");
+                        }
+                    };
+            
+                    request.onerror = function () {
+                        alert("Lỗi khi truy xuất file!");
+                    };
+                });
+            }
+            
+            // Chuyển Base64 về ArrayBuffer để đọc file Word
+            function base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+            
+            
+            // Hàm tải file và chuyển sang giao diện làm bài
+            function loadFile(file) {
+                let reader = new FileReader();
+                reader.onload = function (event) {
+                    let fileContent = event.target.result;
+                    document.getElementById("examContainer").innerHTML = fileContent; // Hiển thị đề bài
+                };
+                reader.readAsText(new Blob([file.content])); // Đọc nội dung file đã lưu
+            }
+
+        //// ranker 
+        //// gọi tên người làm         
+        let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
+        //// hàm tạo bảng xếp hạng
+         // tạo bảng rank
+         // lưu tạo bảng rank
+         function saveRank(name, newScore) {
+            openDB(() => {
+                const transaction = db.transaction(["rank"], "readwrite");
+                const store = transaction.objectStore("rank");
+        
+                const request = store.get(name);
+        
+                request.onsuccess = function () {
+                    const existingEntry = request.result;
+        
+                    if (existingEntry) {
+                        // Cộng dồn điểm số mới vào điểm số cũ
+                        existingEntry.score += parseFloat(newScore);
+        
+                        const updateRequest = store.put(existingEntry);
+                        updateRequest.onsuccess = function () {
+                            console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
+                        };
+                        updateRequest.onerror = function () {
+                            console.error("Error updating score");
+                        };
+                    } else {
+                        // Nếu chưa có dữ liệu, thêm mới
+                        const newEntry = { name: name, score: parseFloat(newScore) };
+                        const addRequest = store.add(newEntry);
+        
+                        addRequest.onsuccess = function () {
+                            console.log("New rank data added successfully!");
+                        };
+                        addRequest.onerror = function () {
+                            console.error("Error adding new rank data");
+                        };
+                    }
+                };
+        
+                request.onerror = function () {
+                    console.error("Error checking existing entry");
+                };
+            });
+        }
+
+
+
+//////////////////        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+let isFileLoaded = false; // Biến để kiểm tra xem file đã được nạp vào hay chưa
+
+// Hàm kiểm tra và cập nhật trạng thái nút "Làm bài"
+function updateStartButtonState() {
+    const startBtn = document.getElementById('startBtn');
+    if (questions.length > 0 || isFileLoaded) {
+        startBtn.disabled = false; // Mở khóa nút "Làm bài"
+    } else {
+        startBtn.disabled = true; // Khóa nút "Làm bài"
+    }
+}
+
+
+//////////////////////////////////////////////////
+        let questions = [];
+        let correctAnswers = [];
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                document.getElementById('fileUploadFeedback').innerText = 'Xin hãy chọn một file Word.';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                    .then(function(result) {
+                        const text = result.value;
+                        parseQuestions(text);
+                    })
+                    .catch(function(err) {
+                        console.log(err);
+                        alert('Không thể đọc file Word');
+                        document.getElementById('fileUploadFeedback').innerText = 'Không thể đọc file Word!';
+                        document.getElementById('fileUploadFeedback').style.color = 'red';
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function parseQuestions(text) {
+            const lines = text.split('\n');
+            questions = [];
+            let currentQuestion = null;
+            let isValidFormat = true;
+        
+            lines.forEach(line => {
+                if (line.startsWith('Câu hỏi:')) {
+                    if (currentQuestion) {
+                        questions.push(currentQuestion);
+                    }
+                    currentQuestion = { 
+                        question: line.replace('Câu hỏi:', '').trim(), 
+                        options: {}, 
+                        correctOptions: { correct: [], incorrect: [] } 
+                    };
+                } else if (line.startsWith('A:')) {
+                    currentQuestion.options.A = line.replace('A:', '').trim();
+                } else if (line.startsWith('B:')) {
+                    currentQuestion.options.B = line.replace('B:', '').trim();
+                } else if (line.startsWith('C:')) {
+                    currentQuestion.options.C = line.replace('C:', '').trim();
+                } else if (line.startsWith('D:')) {
+                    currentQuestion.options.D = line.replace('D:', '').trim();
+                } else if (line.startsWith('Đáp án đúng:')) {
+                    const correctAnswers = line.replace('Đáp án đúng:', '').trim().split(',').map(answer => answer.trim());
+                    currentQuestion.correctOptions.correct = correctAnswers;
+        
+                    // Tự động thêm các đáp án còn lại vào mảng incorrect
+                    const allOptions = ['A', 'B', 'C', 'D'];
+                    currentQuestion.correctOptions.incorrect = allOptions.filter(option => !correctAnswers.includes(option));
+                } else if (line.trim() !== '') {
+                    isValidFormat = false;
+                }
+        
+                isFileLoaded = true;
+                updateStartButtonState();
+            });
+        
+            if (currentQuestion) {
+                questions.push(currentQuestion);
+            }
+        
+            if (isValidFormat && questions.length > 0) {
+                displayAddedQuestions();
+                document.getElementById('startBtn').disabled = false;
+            } else {
+                document.getElementById('fileUploadFeedback').innerHTML = 'Định dạng file không đúng. Vui lòng kiểm tra lại.';
+                document.getElementById('fileUploadFeedback').style.color = 'red';
+                document.getElementById('startBtn').disabled = true;
+            }
+
+            //console.log("Correct Answers:", currentQuestion.correctOptions.correct);
+            //console.log("Incorrect Answers:", currentQuestion.correctOptions.incorrect);
+            //console.log("--------------------------------------------------------------");
+        }
+
+        function toggleStartButton() {
+            if (questions.length > 0) {
+                document.getElementById('startBtn').disabled = false;
+            } else {
+                document.getElementById('startBtn').disabled = true;
+            }
+        }
+
+        function displayAddedQuestions() {
+            const container = document.getElementById('addedQuestionsContainer');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const questionHTML = `
+                    <div class="question-container">
+                        <p><strong>Câu hỏi ${index + 1}: ${q.question}</strong></p>
+                        <ul>
+                            <li>A. ${q.options.A}</li>
+                            <li>B. ${q.options.B}</li>
+                            <li>C. ${q.options.C}</li>
+                            <li>D. ${q.options.D}</li>
+                        </ul>
+                    </div>
+                `;
+                container.innerHTML += questionHTML;
+            });
+        }
+
+        function toggleCorrectAnswer(option) {
+            const correctCheckbox = document.getElementById(`correct${option}`);
+            if (correctCheckbox.checked) {
+                if (!correctAnswers.includes(option)) {
+                    correctAnswers.push(option);
+                }
+            } else {
+                const index = correctAnswers.indexOf(option);
+                if (index > -1) {
+                    correctAnswers.splice(index, 1);
+                }
+            }
+            toggleAddQuestionButton();
+        }
+
+        function toggleAddQuestionButton() {
+            const question = document.getElementById('question').value.trim();
+            const optionA = document.getElementById('optionA').value.trim();
+            const optionB = document.getElementById('optionB').value.trim();
+            const optionC = document.getElementById('optionC').value.trim();
+            const optionD = document.getElementById('optionD').value.trim();
+
+            const button = document.getElementById('addQuestionButton');
+
+            if (question && optionA && optionB && optionC && optionD && correctAnswers.length > 0) {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
+        }
+
+        function addQuestion() {
+            const question = document.getElementById('question').value.trim();
+            const options = {
+                A: document.getElementById('optionA').value.trim(),
+                B: document.getElementById('optionB').value.trim(),
+                C: document.getElementById('optionC').value.trim(),
+                D: document.getElementById('optionD').value.trim(),
+            };
+
+            questions.push({ question, options, correctAnswers: [...correctAnswers] });
+
+            displayAddedQuestions();
+
+            document.getElementById('add-question-form').reset();
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+            correctAnswers = [];
+            toggleAddQuestionButton();
+
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz() {
+            document.getElementById('fileListSection').style.display = 'none';
+            document.getElementById('back').style.display = 'none';
+            document.getElementById('manualQuestionSection').style.display = 'none';
+            document.getElementById('addedQuestionsContainer').style.display = 'none';
+            document.getElementById('fileInputSection').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('quizContent').style.display = 'block';
+
+            const quizContent = document.getElementById('quizContent');
+            quizContent.innerHTML = '';
+            questions.forEach((q, index) => {
+                const optionsArray = [
+                    { key: 'A', value: q.options.A },
+                    { key: 'B', value: q.options.B },
+                    { key: 'C', value: q.options.C },
+                    { key: 'D', value: q.options.D }
+                ];
+
+                shuffleArray(optionsArray);
+
+                let questionHTML = `
+                    <div class="question-container">
+                        <p><strong>Câu hỏi ${index + 1}: ${q.question}</strong></p>
+                `;
+
+                optionsArray.forEach(option => {
+                    questionHTML += `
+                        <div>
+                            <input type="checkbox" name="question${index}_${option.key}" value="${option.key}"> ${option.key}. ${option.value}
+                        </div>
+                    `;
+                });
+
+                questionHTML += '</div>';
+                quizContent.innerHTML += questionHTML;
+            });
+
+            document.getElementById('submitBtn').style.display = 'inline-block';
+        }
+        function goBack() {
+            window.history.back();
+        }
+
+        function countUnselectedIncorrectAnswers(incorrectOptions, selectedAnswers) {
+            let unselectedIncorrectCount = 0;
+        
+            incorrectOptions.forEach(option => {
+                if (!selectedAnswers.includes(option)) {
+                    unselectedIncorrectCount++;
+                }
+            });
+        
+            return unselectedIncorrectCount;
+        }
+
+        function submitQuiz() {
+            let totalQuestions = questions.length;
+            let pointsPerQuestion = 10 / totalQuestions;
+            let earnedPoints = 0;
+            let correctCount = 0;
+            let incorrectCount = 0;
+            let unselectedIncorrectCount = 0; // Khai báo biến unselectedIncorrectCount ở đây
+        
+            questions.forEach((q, index) => {
+                const correctOptions = q.correctOptions.correct; // Lấy các đáp án đúng
+                const incorrectOptions = q.correctOptions.incorrect; // Lấy các đáp án sai
+                const selectedAnswers = []; // Đáp án người dùng chọn
+
+                //for (let i = 0; i < correctOptions.length; i++) {
+                //    console.log(correctOptions[i]); // In ra từng phần tử trong mảng
+                //}
+                //console.log("##############");
+                //for (let i = 0; i < incorrectOptions.length; i++) {
+                //    console.log(incorrectOptions[i]); // In ra từng phần tử trong mảng
+                //}
+                //console.log("------------------");
+
+
+                // Lấy các đáp án người dùng đã chọn
+                Object.keys(q.options).forEach(optionKey => {
+                    const checkboxes = document.querySelectorAll(`input[name="question${index}_${optionKey}"]:checked`);
+                    checkboxes.forEach(checkbox => {
+                        selectedAnswers.push(checkbox.value);
+                    });
+                });
+        
+                // Tính số đáp án đúng mà người dùng chọn
+                let correctSelected = 0;
+                correctOptions.forEach(answer => {
+                    if (selectedAnswers.includes(answer)) {
+                        correctSelected++;
+                    }
+                });
+
+                //console.log(correctSelected);
+                //console.log("&&&&&&&&&&&&&&&&&")
+
+                unselectedIncorrectCount=0;
+                // Tính số đáp án sai mà người dùng chọn
+                let incorrectSelected = 0;
+                incorrectOptions.forEach(answer => {
+                    if (selectedAnswers.includes(answer)) {
+                        incorrectSelected++;
+                    }
+                });
+        
+                // Tính số đáp án sai mà người dùng không chọn
+                unselectedIncorrectCount += countUnselectedIncorrectAnswers(incorrectOptions, selectedAnswers);
+
+                //console.log(unselectedIncorrectCount);
+                //console.log("&&&&&&&&&&&&&&&&&----")
+        
+                // Tính điểm cho câu hỏi dựa trên số đáp án đúng
+                let questionScore = 0;
+                if (correctSelected + unselectedIncorrectCount === 4) {
+                    questionScore = pointsPerQuestion; // 100% điểm nếu đúng tất cả
+                } else if (correctSelected + unselectedIncorrectCount === 3) {
+                    questionScore = pointsPerQuestion * 0.5; // 50% điểm nếu đúng 3/4
+                } else if (correctSelected + unselectedIncorrectCount === 2) {
+                    questionScore = pointsPerQuestion * 0.25; // 25% điểm nếu đúng 2/4
+                } else if (correctSelected + unselectedIncorrectCount=== 1) {
+                    questionScore = pointsPerQuestion * 0.1; // 10% điểm nếu đúng 1/4
+                } else {
+                    questionScore = 0; // 0% điểm nếu không đúng câu nào
+                }
+        
+                // Cộng điểm vào tổng điểm
+                earnedPoints += questionScore;
+        
+                // Đếm số câu đúng/sai
+                if (correctSelected > 0) {
+                    correctCount++;
+                } else {
+                    incorrectCount++;
+                }
+        
+                // Đánh dấu đúng/sai trên giao diện
+                Object.keys(q.options).forEach(optionKey => {
+                    const parentDiv = document.querySelector(`input[name="question${index}_${optionKey}"]`).parentElement;
+                    if (correctOptions.includes(optionKey)) {
+                        parentDiv.classList.add('correct');
+                    } else if (selectedAnswers.includes(optionKey)) {
+                        parentDiv.classList.add('incorrect');
+                    }
+                });
+            });
+        
+            // Đảm bảo tổng điểm không vượt quá 10 hoặc nhỏ hơn 0
+            if (earnedPoints > 10) {
+                earnedPoints = 10; // Nếu tổng điểm vượt quá 10, gán lại bằng 10
+            } else if (earnedPoints < 0) {
+                earnedPoints = 0; // Nếu tổng điểm nhỏ hơn 0, gán lại bằng 0
+            }
+        
+            // Vô hiệu hóa tất cả các ô chọn đáp án
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.disabled = true;
+            });
+        
+            // Hiển thị điểm số
+            document.getElementById('scoreValueTop').innerText = earnedPoints.toFixed(1);
+            document.getElementById('scoreDisplayTop').style.display = 'block';
+        
+            // Hiển thị kết quả chi tiết
+            //Bạn đã trả lời đúng ${correctCount} câu, sai ${incorrectCount} câu.<br>
+            //Số đáp án sai không được chọn: ${unselectedIncorrectCount}.<br>
+            const resultMessage = document.getElementById('resultSection');
+            resultMessage.style.display = 'block';
+            resultMessage.innerHTML = `
+                Điểm của bạn là: ${earnedPoints.toFixed(1)} / 10.
+            `;
+        
+            // Ẩn nút "Nộp bài" và hiển thị nút "Quay lại"
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('backBtn').style.display = 'inline-block';
+        
+            // Lưu điểm vào bảng xếp hạng
+           // saveRank(userlocal.name, earnedPoints.toFixed(1));
+        }
+
+        function backToStart() {
+            // Reset danh sách câu hỏi
+            questions = [];
+            correctAnswers = [];
+        
+            // Reset trạng thái file
+            isFileLoaded = false;
+        
+            // Reset giao diện
+            document.getElementById('fileListSection').style.display = 'block';
+            document.getElementById('back').style.display = 'block';
+            document.getElementById('quizContent').innerHTML = '';
+            document.getElementById('manualQuestionSection').style.display = 'block';
+            document.getElementById('addedQuestionsContainer').style.display = 'block';
+            document.getElementById('fileInputSection').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('add-question-form').reset();
+            document.getElementById('scoreDisplayTop').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('fileUploadFeedback').innerHTML = '';
+            document.getElementById('addedQuestionsContainer').innerHTML = '';
+            document.getElementById('fileList').style.display = 'none';
+            // Reset trạng thái nút "Làm bài"
+            updateStartButtonState();
+        
+            // Reset các ô checkbox (nếu có)
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.disabled = false;
+                checkbox.parentElement.classList.remove('correct', 'incorrect');
+            });
+        }
+        
+
+        document.getElementById('question').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionA').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionB').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionC').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionD').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('correctA').addEventListener('click', () => toggleCorrectAnswer('A'));
+        document.getElementById('correctB').addEventListener('click', () => toggleCorrectAnswer('B'));
+        document.getElementById('correctC').addEventListener('click', () => toggleCorrectAnswer('C'));
+        document.getElementById('correctD').addEventListener('click', () => toggleCorrectAnswer('D'));
+    </script>
+</body>
+</html>

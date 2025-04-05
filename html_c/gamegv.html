@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css_c/game1.css">
+    <style>
+      /* CSS căn giữa thẻ h1 */
+      h1 {
+        padding-top: 74px;
+        text-align: center;
+        margin: 0px 0;
+        font-size: 4.5rem;
+        color: #eeff04;
+        text-shadow: 0 0 10px #000080, 0 0 20px #000080, 0 0 40px #000080; /* Hiệu ứng phát sáng */    
+        animation: float 3s ease-in-out infinite; /* Hiệu ứng chuyển động */
+    }
+    
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px); /* Di chuyển lên xuống */
+        }
+    }
+  </style>  
+</head>
+<body>
+  
+  <!-- Navbar start -->
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <div class="logo">
+          <img src="../image_c/KTHD.jpg" alt="KTHD Logo" id="logo-img">
+        </div>
+
+          <div class="main-nav">
+            <ul>
+              <a href="../html_c/indexgv.html">HOME</a>
+              <a href="../html_c/baitapgv.html">BÀI TẬP</a>
+              <a href="../html_c/laptrinhgv.html">LẬP TRÌNH</a>
+              <a href="../html_c/tailieu1.html">TÀI LIỆU</a>
+              <a href="../html_c/gamegv.html">GAME</a>
+            </ul>
+          </div>
+
+          <div class="floating-button">
+              <button id="userButton" class="btn btn-primary">
+                 <!-- <span id="username">Khách</span> -->
+                 <script src="../js_c/accgv.js"></script>
+              </button>
+              <div class="floating-menu" id="floatingMenu">
+                <a href="../html_c/dangxuat.html">Đăng xuất</a>
+              </div>
+            </div>
+            <script src="../js_c/script.js"></script>
+          
+      </div>
+    </nav>
+  </header>
+  <!-- Navbar end -->
+  <!-- lập trinh -->
+  <main class="main-content">
+    <h1>game</h1>
+    <div class="square-buttons">
+      <button> <a href="../html_c/batbuom.html">bắt bướm</a></button>
+      <button> <a href="../html_c/chess.html">cờ vua</a></button>
+      <button> <a href="../html_c/tuong.html">cờ tướng</a></button>
+      <button> <a href="../html_c/shogi.html">shogi</a></button>
+  </div>
+  </main>
+
+  <!-- end lập trình -->
+
+</body>
+</html>

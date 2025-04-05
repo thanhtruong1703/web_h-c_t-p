@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng Dụng Trắc Nghiệm Tự Nhập</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        .btn-submit {
+            background-color: #dc3545;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-submit:hover {
+            background-color: #218838;
+            cursor: pointer;
+        }
+
+        .question-container {
+            margin-bottom: 15px;
+        }
+
+        #quizContent {
+            display: none;
+        }
+
+        .result-message {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .btn-start {
+            font-size: 18px;
+            padding: 10px 20px;
+            background-color: #6774ec;
+            color: white;
+            border-radius: 5px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .btn-start:hover {
+            background-color: #218838;
+            cursor: pointer;
+        }
+
+        #scoreDisplayTop {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            font-size: 18px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .alert {
+            color: rgba(236, 25, 25, 0.919);
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: rgba(255, 0, 0, 0.984);
+        }
+
+        .correct {
+            color: rgb(0, 110, 255);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="quiz-container">
+            <h1 class="text-center">ĐỀ THI TRẮC NGHIỆM</h1>
+
+            <div id="fileInputSection" class="mb-4">
+                <label for="fileInput" class="form-label">Chọn File Word:</label>
+                <input type="file" id="fileInput" class="form-control" accept=".docx">
+                <div id="fileUploadFeedback" class="mt-3"></div>
+            </div>
+
+            <div id="manualQuestionSection" class="mb-4">      
+                <form id="add-question-form">
+                    <h2 class="text-primary">Tạo Câu Hỏi Thủ Công </h2>
+                    <div class="form-group">
+                        <label for="question">Nhập Câu hỏi:</label>
+                        <input type="text" class="form-control" id="question" name="question" required oninput="toggleAddQuestionButton()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="optionA">Đáp án A:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionA" name="optionA" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctA" onclick="toggleCorrectAnswer('A')"> Đúng
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionB">Đáp án B:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionB" name="optionB" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctB" onclick="toggleCorrectAnswer('B')"> Đúng
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionC">Đáp án C:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionC" name="optionC" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctC" onclick="toggleCorrectAnswer('C')"> Đúng
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionD">Đáp án D:</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control" id="optionD" name="optionD" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <input type="checkbox" id="correctD" onclick="toggleCorrectAnswer('D')"> Đúng
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" id="addQuestionButton" onclick="addQuestion()" disabled>Thêm câu hỏi</button>
+                </form>
+            </div>
+
+            <div id="addedQuestionsContainer" class="mt-4">
+                <!-- Hiển thị các câu hỏi đã thêm ở đây -->
+            </div>
+
+            <div id="quizContent" class="mt-4">
+                <!-- Nội dung câu hỏi thêm ở đây -->
+            </div>
+
+            <button id="startBtn" class="btn btn-start" onclick="startQuiz()" disabled>Làm Bài</button>
+            <button id="submitBtn" class="btn btn-submit" onclick="submitQuiz()" style="display: none;">Nộp Bài</button>
+
+            <div id="scoreDisplayTop">
+                Điểm số: <span id="scoreValueTop"></span>
+            </div>
+
+            <div id="resultSection" class="result-message" style="display: none;"></div>
+        </div>
+    </div> 
+
+    <script>
+        let questions = [];
+        let correctAnswers = [];
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                document.getElementById('fileUploadFeedback').innerText = 'Xin hãy chọn một file Word.';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                    .then(function(result) {
+                        const text = result.value;
+                        parseQuestions(text);
+                    })
+                    .catch(function(err) {
+                        console.log(err);
+                        alert('Không thể đọc file Word');
+                        document.getElementById('fileUploadFeedback').innerText = 'Không thể đọc file Word!';
+                        document.getElementById('fileUploadFeedback').style.color = 'red';
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function parseQuestions(text) {
+            const lines = text.split('\n');
+            questions = [];
+            let currentQuestion = null;
+            let isValidFormat = true;
+
+            lines.forEach(line => {
+                if (line.startsWith('Câu hỏi:')) {
+                    if (currentQuestion) {
+                        questions.push(currentQuestion);
+                    }
+                    currentQuestion = { question: line.replace('Câu hỏi:', '').trim(), options: {}, correctAnswers: [] };
+                } else if (line.startsWith('A:')) {
+                    currentQuestion.options.A = line.replace('A:', '').trim();
+                } else if (line.startsWith('B:')) {
+                    currentQuestion.options.B = line.replace('B:', '').trim();
+                } else if (line.startsWith('C:')) {
+                    currentQuestion.options.C = line.replace('C:', '').trim();
+                } else if (line.startsWith('D:')) {
+                    currentQuestion.options.D = line.replace('D:', '').trim();
+                } else if (line.startsWith('Đáp án đúng:')) {
+                    const correctAnswers = line.replace('Đáp án đúng:', '').trim().split(',');
+                    currentQuestion.correctAnswers = correctAnswers.map(answer => answer.trim());
+                } else if (line.trim() !== '') {
+                    isValidFormat = false;
+                }
+            });
+
+            if (currentQuestion) {
+                questions.push(currentQuestion);
+            }
+
+            if (isValidFormat && questions.length > 0) {
+                document.getElementById('fileUploadFeedback').innerHTML = 'File đã được tải lên thành công!';
+                document.getElementById('fileUploadFeedback').style.color = 'green';
+                displayAddedQuestions();
+                document.getElementById('startBtn').disabled = false;
+            } else {
+                document.getElementById('fileUploadFeedback').innerHTML = 'Định dạng file không đúng. Vui lòng kiểm tra lại.';
+                document.getElementById('fileUploadFeedback').style.color = 'red';
+                document.getElementById('startBtn').disabled = true;
+            }
+        }
+
+        function toggleStartButton() {
+            if (questions.length > 0) {
+                document.getElementById('startBtn').disabled = false;
+            } else {
+                document.getElementById('startBtn').disabled = true;
+            }
+        }
+
+        function displayAddedQuestions() {
+            const container = document.getElementById('addedQuestionsContainer');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const questionHTML = `
+                    <div class="question-container">
+                        <p><strong>Câu hỏi ${index + 1}: ${q.question}</strong></p>
+                        <ul>
+                            <li>A. ${q.options.A}</li>
+                            <li>B. ${q.options.B}</li>
+                            <li>C. ${q.options.C}</li>
+                            <li>D. ${q.options.D}</li>
+                        </ul>
+                    </div>
+                `;
+                container.innerHTML += questionHTML;
+            });
+        }
+
+        function toggleCorrectAnswer(option) {
+            const correctCheckbox = document.getElementById(`correct${option}`);
+            if (correctCheckbox.checked) {
+                if (!correctAnswers.includes(option)) {
+                    correctAnswers.push(option);
+                }
+            } else {
+                const index = correctAnswers.indexOf(option);
+                if (index > -1) {
+                    correctAnswers.splice(index, 1);
+                }
+            }
+            toggleAddQuestionButton();
+        }
+
+        function toggleAddQuestionButton() {
+            const question = document.getElementById('question').value.trim();
+            const optionA = document.getElementById('optionA').value.trim();
+            const optionB = document.getElementById('optionB').value.trim();
+            const optionC = document.getElementById('optionC').value.trim();
+            const optionD = document.getElementById('optionD').value.trim();
+
+            const button = document.getElementById('addQuestionButton');
+
+            if (question && optionA && optionB && optionC && optionD && correctAnswers.length > 0) {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
+        }
+
+        function addQuestion() {
+            const question = document.getElementById('question').value.trim();
+            const options = {
+                A: document.getElementById('optionA').value.trim(),
+                B: document.getElementById('optionB').value.trim(),
+                C: document.getElementById('optionC').value.trim(),
+                D: document.getElementById('optionD').value.trim(),
+            };
+
+            questions.push({ question, options, correctAnswers: [...correctAnswers] });
+
+            displayAddedQuestions();
+
+            document.getElementById('add-question-form').reset();
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+            correctAnswers = [];
+            toggleAddQuestionButton();
+
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz() {
+            document.getElementById('manualQuestionSection').style.display = 'none';
+            document.getElementById('addedQuestionsContainer').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('quizContent').style.display = 'block';
+
+            const quizContent = document.getElementById('quizContent');
+            quizContent.innerHTML = '';
+            questions.forEach((q, index) => {
+                const optionsArray = [
+                    { key: 'A', value: q.options.A },
+                    { key: 'B', value: q.options.B },
+                    { key: 'C', value: q.options.C },
+                    { key: 'D', value: q.options.D }
+                ];
+
+                shuffleArray(optionsArray);
+
+                let questionHTML = `
+                    <div class="question-container">
+                        <p><strong>Câu hỏi ${index + 1}: ${q.question}</strong></p>
+                `;
+
+                optionsArray.forEach(option => {
+                    questionHTML += `
+                        <div>
+                            <input type="checkbox" name="question${index}" value="${option.key}"> ${option.key}. ${option.value}
+                        </div>
+                    `;
+                });
+
+                questionHTML += '</div>';
+                quizContent.innerHTML += questionHTML;
+            });
+
+            document.getElementById('submitBtn').style.display = 'inline-block';
+        }
+
+        function submitQuiz() {
+            let correctCount = 0;
+
+            questions.forEach((q, index) => {
+                const selectedAnswers = [];
+                document.querySelectorAll(`input[name="question${index}"]:checked`).forEach(checkbox => {
+                    selectedAnswers.push(checkbox.value);
+                });
+
+                if (selectedAnswers.length === 0) {
+                    selectedAnswers.push('none');
+                }
+
+                const correctSelectedAnswers = selectedAnswers.filter(answer => q.correctAnswers.includes(answer)).length;
+                const incorrectSelectedAnswers = selectedAnswers.filter(answer => !q.correctAnswers.includes(answer)).length;
+
+                // Đổi màu các đáp án sai thành màu đỏ và đáp án đúng thành màu xanh dương
+                const answers = document.querySelectorAll(`input[name="question${index}"]`);
+                answers.forEach(answer => {
+                    const parentDiv = answer.parentElement;
+                    if (q.correctAnswers.includes(answer.value)) {
+                        parentDiv.classList.add('correct');
+                    } else if (answer.checked) {
+                        parentDiv.classList.add('incorrect');
+                    }
+                });
+
+                if (incorrectSelectedAnswers === 0 && correctSelectedAnswers === q.correctAnswers.length) {
+                    correctCount++;
+                }
+            });
+
+            const totalQuestions = questions.length;
+            const score = (correctCount / totalQuestions) * 10;
+
+            document.getElementById('scoreValueTop').innerText = score.toFixed(1);
+            document.getElementById('scoreDisplayTop').style.display = 'block';
+
+            const scoreDisplayBottom = document.createElement('div');
+            scoreDisplayBottom.innerHTML = `Điểm của bạn là: ${score.toFixed(1)}`;
+            scoreDisplayBottom.style.marginTop = '20px';
+            scoreDisplayBottom.style.fontSize = '18px';
+            scoreDisplayBottom.style.backgroundColor = '#f8f9fa';
+            scoreDisplayBottom.style.padding = '10px';
+            scoreDisplayBottom.style.borderRadius = '5px';
+            document.getElementById('submitBtn').insertAdjacentElement('afterend', scoreDisplayBottom);
+
+            const resultMessage = document.getElementById('resultSection');
+            resultMessage.style.display = 'block';
+            resultMessage.innerHTML = `Bạn đã trả lời đúng ${correctCount} câu hỏi trong tổng số ${totalQuestions} câu.`;
+        }
+
+        function backToStart() {
+            questions = [];
+            document.getElementById('quizContent').innerHTML = '';
+            document.getElementById('manualQuestionSection').style.display = 'block';
+            document.getElementById('addedQuestionsContainer').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('add-question-form').reset();
+            document.getElementById('scoreDisplayTop').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('addedQuestionsContainer').innerHTML = '';
+        }
+
+        document.getElementById('question').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionA').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionB').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionC').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('optionD').addEventListener('input', toggleAddQuestionButton);
+        document.getElementById('correctA').addEventListener('click', () => toggleCorrectAnswer('A'));
+        document.getElementById('correctB').addEventListener('click', () => toggleCorrectAnswer('B'));
+        document.getElementById('correctC').addEventListener('click', () => toggleCorrectAnswer('C'));
+        document.getElementById('correctD').addEventListener('click', () => toggleCorrectAnswer('D'));
+    </script>
+</body>
+</html>

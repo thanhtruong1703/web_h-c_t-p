@@ -1,0 +1,67 @@
+/* Tổng quan */
+
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Ngăn kéo ngang */
+  }
+  
+  .navbar {
+    position: fixed; /* Cố định thanh navbar */
+    top: 0;
+    left: 0;
+    width: 100%; /* Chiều rộng toàn màn hình */
+    height: 80px; /* Chiều cao cố định */
+    background-color: #ffffff;
+    z-index: 999; /* Ưu tiên hiển thị */
+    display: flex; /* Sử dụng Flexbox để canh chỉnh các thành phần bên trong */
+    align-items: center;
+    justify-content: space-between; /* Canh đều logo, menu và nút nổi */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 0 20px; /* Khoảng cách ngang cho nội dung */
+  }
+  
+  /* Logo */
+  .logo {
+    font-size: 55px;
+    font-weight: bold;
+    margin: 0;
+    flex-shrink: 0; /* Ngăn logo bị co khi kích thước màn hình thay đổi */
+  }
+  
+  /* Menu chính */
+  .main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px; /* Khoảng cách giữa các mục */
+  }
+  
+  .main-nav ul a {
+    font-size: 18px;
+    color: #000000;
+    text-decoration: none;
+  }
+  
+  .main-nav ul a:hover {
+    color: rgb(0, 4, 255);
+    text-decoration: underline;
+  }
+  
+  /* Nút nổi */
+  .floating-button {
+    flex-shrink: 0; /* Ngăn bị co lại */
+  }
+  
+  #userButton {
+    border-radius: 100%;
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  

@@ -1,0 +1,90 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #74b9ff, #81ecec); /* Gradient từ xanh da trời sang xanh ngọc */
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.loginform {
+    
+    height: 500px;
+    background: rgba(255, 255, 255, 0.9); /* Nền trắng mờ */
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 350px;
+}
+
+.loginform h1 {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.loginform label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+.loginform input {
+
+    height: 62px;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.loginform div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 15px;
+    padding: 7px;
+    display: none;
+    margin-bottom: 0px;
+    color: #ff0000;
+
+    
+}
+
+
+.loginform button { 
+    place-items: center; 
+    height: 100vh;
+
+    margin-top: 10px;
+    width: 50px;
+    height: 50px;
+    width: 100%;
+    padding: 0px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 25px;
+}
+
+.loginform button:hover {
+    background: #0056b3;
+}
+
+.loginform p {
+    font-size: 19px;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.loginform a {
+    color: #007bff;
+    text-decoration: none;
+}

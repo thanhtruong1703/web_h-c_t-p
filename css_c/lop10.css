@@ -1,0 +1,166 @@
+/* Tổng quan */
+
+.navbar {
+    position: fixed; /* Đặt navbar ở vị trí cố định */
+    top: 0; /* Cách cạnh trên của trang */
+    left: 0; /* Cách cạnh trái của trang */
+    width: 100%; /* Chiều rộng đầy đủ của màn hình */
+    z-index: 999; /* Đảm bảo navbar luôn ở trên các phần tử khác */
+    background-color: #ffffff; /* Màu nền */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Tạo hiệu ứng bóng */
+  }
+  
+  body {
+    padding-top: 70px; /* Đảm bảo nội dung không bị che bởi navbar */
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #74b9ff, #81ecec);
+    margin: 0;
+    padding: 0;
+    padding-top: 70px;
+  }
+  
+  
+  .logo {
+    font-size: 70px;
+    font-weight: bold;
+  }
+  
+  .main-nav ul {
+    width: 100px;
+    position: static; /* Xóa thuộc tính vị trí tuyệt đối để không bị lệch */
+    display: flex; /* Hiển thị ngang các phần tử */
+    justify-content: center; /* Canh giữa các mục */
+    list-style: none; /* Xóa dấu chấm đầu mục */
+    padding: 0; /* Xóa khoảng cách thừa */
+    margin: 0; /* Xóa khoảng cách thừa */
+    position: absolute;
+    top: 50%;       /* Đưa phần tử đến giữa chiều cao */
+    left: 50%;      /* Đưa phần tử đến giữa chiều ngang */
+    transform: translate(-50%, -50%); /* Dịch ngược lại một nửa chiều rộng và chiều cao */
+    text-align: center;
+    list-style: none;
+    display: flexbox;
+  }
+  
+  .main-nav ul a {
+    font-size: 45px;
+    margin: 0 30px; /* Khoảng cách giữa các mục */
+    color: #000000;
+    text-decoration: none;
+  }
+  
+  .main-nav ul a:hover {
+    color: rgb(0, 4, 255);
+    text-decoration: underline;
+  }
+  
+  /* Nút nổi */
+  .floating-button {
+      
+    position: fixed;
+    top: 4px; /* Đặt vị trí gần navbar */
+    right: 30px; /* Cạnh phải màn hình */
+  }
+  
+  #userButton {
+    margin: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Căn giữa nội dung */
+    justify-content: center; /* Căn giữa theo chiều dọc */
+    line-height: 1; /* Xóa khoảng cách dòng thừa */
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgb(255, 255, 255);
+  }
+  
+  
+  #userButton .username {
+    font-size: 40px; /* Kích thước lớn hơn cho tên */
+    font-weight: bold; /* In đậm tên */
+  }
+  
+  #userButton .role {
+    font-weight: bold;
+    font-size: 20px; /* Kích thước nhỏ hơn cho vai trò */
+    color: #000000; /* Màu xám nhẹ hơn cho vai trò */
+    margin-top: 0px; /* Tạo khoảng cách nhỏ phía trên */
+  }
+  
+  .floating-menu {
+    display: none;
+    position: absolute;
+    top: 90px;
+    right: 0;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 1000;
+  }
+  
+  .floating-menu a {
+    text-align: center; 
+    width: 200px;                /*điều chỉnh chữ*/
+    height: 60px;
+    display: inline-block;       /* Hiển thị ngang từng nút */
+    padding: 10px 10px;          /* Khoảng cách bên trong từng nút */
+    font-size: 25px;             /* Kích thước chữ */
+    text-decoration: none;       /* Bỏ gạch chân */
+    color: #000;                 /* Màu chữ */
+    background: #f9f9f9;         /* Màu nền */
+    margin-right: 4px;           /* Khoảng cách giữa các nút */
+    border-radius: 4px;          /* Bo góc nút */
+  }
+  
+  .floating-menu a:last-child {
+    border-bottom: none;
+  }
+  
+  
+  .floating-menu a:hover {
+    background: #007bff;
+    color: white;
+  }
+  
+  
+  .square-buttons {
+    position: absolute;
+    margin-top: 300px;
+    top: 50%;      /* Đưa phần tử đến giữa chiều cao */
+    left: 50%;     /* Đưa phần tử đến giữa chiều ngang */
+    transform: translate(-50%, -50%); /* Dịch ngược lại một nửa chiều rộng và chiều cao */
+    text-align: center;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 100px; /* Khoảng cách giữa các nút */
+  }
+  
+  .square-buttons button {
+  
+    width: 190px;
+    height: 190px;
+    font-size: 35px;
+    font-weight: bold;
+    color: #ffffff;
+    background: #002fff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    /* transition: transform 0.2s, 
+    background-color 0.2s; */
+  }
+  .square-buttons button a{
+    color: #fff;
+    border: none;
+    text-decoration: none;
+  }
+  .square-buttons button:hover {
+    background: #FF0000;
+    color: rgb(255, 0, 0);
+  }

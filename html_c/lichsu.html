@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lịch sử 10</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #74b9ff, #81ecec);
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+
+        .main-nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        .main-nav ul a {
+            display: block;
+            padding: 15px 0;
+            color: #2d3436;
+            text-decoration: none;
+            font-size: 28px;
+            margin-top: 10px;
+            transition: color 0.3s, transform 0.2s;
+        }
+
+        .main-nav ul a:hover {
+            color: #0984e3;
+            transform: scale(1.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+            gap: 20 px;
+        }
+
+        .column {
+            flex: 1;
+            padding: 20px;
+            background-color: #f4f4f9;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        li {
+            background-color: #e8e8e8;
+            margin: 6px 0;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        li a {
+            text-decoration: none;
+        }
+
+        li:hover {
+            background-color: #dcdcdc;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+            color: #636e72;
+        }
+
+        a {
+            font-weight: bold;
+            transition: color 0.3s, background-color 0.3s;
+        }
+
+        a:hover {
+            color: white;
+            background-color: #1d05fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LỊCH SỬ 10</h1>
+    <button class="back-button" onclick="goBack()">Quay lại</button>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+    <div class="container">
+        <div class="column">
+            <h2>Danh sách 1</h2>
+            <ul>
+                <li><a href="../html_c/lsctst1001.html">LỊCH SỬ CTST</a></li> 
+                <li><a href="../html_c/lsKNTT1001.html">LỊCH SỬ KNTT</a></li>
+                <li><a href="../html_c/lsCD1001.html">LỊCH SỬ CD </a></li> 
+            </ul>
+        </div>
+
+        <!-- <div class="column">
+            <h2>Danh sách 2</h2>
+            <ul>
+                <li><a href="tactst1002.html">TIẾNG ANH CTST TẬP 2</a></li> 
+                <li><a href="taKNTT1002.html">TIẾNG ANH KNTT TẬP 2</a></li> 
+                <li><a href="taCD1002.html">TIẾNG ANH CD TẬP 2</a></li> 
+            </ul>
+        </div> -->
+    </div>
+</body>
+</html>
+z

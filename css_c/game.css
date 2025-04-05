@@ -1,0 +1,175 @@
+/* Tổng quan */
+
+
+
+body {
+  padding-top: 70px; /* Đảm bảo nội dung không bị che bởi navbar */
+  font-family: Arial, sans-serif;
+  /* background: linear-gradient(135deg, #74b9ff, #81ecec); */
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+}
+
+
+.logo {
+  transform: rotate(0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#logo-img {
+  max-width: 100px; /* Điều chỉnh kích thước phù hợp */
+  height: auto; /* Giữ tỷ lệ khung hình */
+  object-fit: contain; /* Đảm bảo hình ảnh vừa khít mà không bị méo */
+}
+
+.navbar {
+  position: fixed; /* Đặt navbar ở vị trí cố định */
+  top: 0; /* Cách cạnh trên của trang */
+  left: 0; /* Cách cạnh trái của trang */
+  width: 100%; /* Chiều rộng đầy đủ của màn hình */
+  z-index: 999; /* Đảm bảo navbar luôn ở trên các phần tử khác */
+  background: linear-gradient(135deg, #007bff, #00bfff); /* Gradient từ xanh dương sang xanh nhạt */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng đậm hơn */
+  border-bottom: 3px solid #0056b3; /* Viền dưới cùng */
+}
+
+/* Main navigation */
+.main-nav ul {
+  width: 1190px;
+  position: static; /* Xóa thuộc tính vị trí tuyệt đối để không bị lệch */
+  display: flex; /* Hiển thị ngang các phần tử */
+  justify-content: center; /* Canh giữa các mục */
+  list-style: none; /* Xóa dấu chấm đầu mục */
+  padding: 0; /* Xóa khoảng cách thừa */
+  margin: 0; /* Xóa khoảng cách thừa */
+  position: absolute;
+  top: 50%; /* Đưa phần tử đến giữa chiều cao */
+  left: 50%; /* Đưa phần tử đến giữa chiều ngang */
+  transform: translate(-50%, -50%); /* Dịch ngược lại một nửa chiều rộng và chiều cao */
+  text-align: center;
+  list-style: none;
+  display: flexbox;
+}
+
+.main-nav ul a {
+  font-size: 45px;
+  margin: 0 60px; /* Khoảng cách giữa các mục */
+  color: #ffffff; /* Màu chữ trắng */
+  text-decoration: none;
+  transition: color 0.3s ease, text-shadow 0.3s ease; /* Hiệu ứng chuyển màu và phát sáng */
+  text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; /* Hiệu ứng phát sáng */
+}
+
+.main-nav ul a:hover {
+  color: #ffcc00; /* Màu vàng khi hover */
+  text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; /* Hiệu ứng phát sáng khi hover */
+  text-decoration: underline;
+}
+
+/* Nút nổi */
+.floating-button {
+  position: fixed;
+  top: 10px; /* Đặt vị trí gần navbar */
+  right: 5px; /* Cạnh phải màn hình */
+}
+
+#userButton {
+  border-radius: 100%;
+  width: 85px;
+  height: 85px;
+  font-size: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgb(1, 48, 255);
+  background-color: #007bff; /* Màu nền nút */
+  color: #ffffff; /* Màu chữ trắng */
+  transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu mượt mà */
+}
+
+#userButton:hover {
+  background-color: #0056b3; /* Màu nền khi hover */
+}
+
+.floating-menu {
+  display: none;
+  position: absolute;
+  top: 90px;
+  right: 0;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.floating-menu a {
+  text-align: center;
+  width: 200px;
+  height: 60px;
+  display: inline-block;
+  padding: 10px 10px;
+  font-size: 25px;
+  text-decoration: none;
+  color: #000;
+  background: #f9f9f9;
+  margin-right: 4px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Hiệu ứng chuyển màu mượt mà */
+}
+
+.floating-menu a:hover {
+  background: #007bff;
+  color: white;
+}
+
+
+.square-buttons {
+  position: absolute;
+  margin-top: 20px;
+  top: 50%;      /* Đưa phần tử đến giữa chiều cao */
+  left: 50%;     /* Đưa phần tử đến giữa chiều ngang */
+  transform: translate(-50%, -50%); /* Dịch ngược lại một nửa chiều rộng và chiều cao */
+  text-align: center;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 100px; /* Khoảng cách giữa các nút */
+}
+
+.square-buttons button {
+
+  width: 190px;
+  height: 190px;
+  font-size: 40px;
+  font-weight: bold;
+  color: #fff;
+  background: #002fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, 
+  background-color 0.2s;
+}
+.square-buttons button a{
+  color: #fff;
+  border: none;
+  text-decoration: none;
+}
+.square-buttons button:hover {
+  background: #1000f0;
+  color: rgb(0, 38, 255);
+}
+.main-content{
+  background-image: url('../image_c/bg.jpg');
+  background-size: 100% 100%; /* Ensure the image covers the entire background */
+  height: 90vh;
+  background-repeat: no-repeat;
+  background-position: center; /* Căn giữa ảnh */
+  background-position: top left; /* Căn góc trên bên trái */
+  background-position:100% 100%; /* Căn theo phần trăm vùng chứa */
+}

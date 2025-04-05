@@ -1,0 +1,222 @@
+/* Tổng quan */
+
+body {
+  padding-top: 70px; /* Đảm bảo nội dung không bị che bởi navbar */
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #74b9ff, #81ecec);
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+}
+
+
+.logo {
+  transform: rotate(0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#logo-img {
+  max-width: 100px; /* Điều chỉnh kích thước phù hợp */
+  height: auto; /* Giữ tỷ lệ khung hình */
+  object-fit: contain; /* Đảm bảo hình ảnh vừa khít mà không bị méo */
+}
+
+.navbar {
+  position: fixed; /* Đặt navbar ở vị trí cố định */
+  top: 0; /* Cách cạnh trên của trang */
+  left: 0; /* Cách cạnh trái của trang */
+  width: 100%; /* Chiều rộng đầy đủ của màn hình */
+  z-index: 999; /* Đảm bảo navbar luôn ở trên các phần tử khác */
+  background: linear-gradient(135deg, #007bff, #00bfff); /* Gradient từ xanh dương sang xanh nhạt */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng đậm hơn */
+  border-bottom: 3px solid #0056b3; /* Viền dưới cùng */
+}
+
+/* Main navigation */
+.main-nav ul {
+  width: 1190px;
+  position: static; /* Xóa thuộc tính vị trí tuyệt đối để không bị lệch */
+  display: flex; /* Hiển thị ngang các phần tử */
+  justify-content: center; /* Canh giữa các mục */
+  list-style: none; /* Xóa dấu chấm đầu mục */
+  padding: 0; /* Xóa khoảng cách thừa */
+  margin: 0; /* Xóa khoảng cách thừa */
+  position: absolute;
+  top: 50%; /* Đưa phần tử đến giữa chiều cao */
+  left: 50%; /* Đưa phần tử đến giữa chiều ngang */
+  transform: translate(-50%, -50%); /* Dịch ngược lại một nửa chiều rộng và chiều cao */
+  text-align: center;
+  list-style: none;
+  display: flexbox;
+}
+
+.main-nav ul a {
+  font-size: 45px;
+  margin: 0 30px; /* Khoảng cách giữa các mục */
+  color: #ffffff; /* Màu chữ trắng */
+  text-decoration: none;
+  transition: color 0.3s ease, text-shadow 0.3s ease; /* Hiệu ứng chuyển màu và phát sáng */
+  text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; /* Hiệu ứng phát sáng */
+}
+
+.main-nav ul a:hover {
+  color: #ffcc00; /* Màu vàng khi hover */
+  text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; /* Hiệu ứng phát sáng khi hover */
+  text-decoration: underline;
+}
+
+/* Nút nổi */
+.floating-button {
+  
+  position: fixed;
+  top: 5px; /* Đặt vị trí gần navbar */
+  right: 5px; /* Cạnh phải màn hình */
+}
+
+#userButton {
+  margin: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Căn giữa nội dung */
+  justify-content: center; /* Căn giữa theo chiều dọc */
+  line-height: 1; /* Xóa khoảng cách dòng thừa */
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgb(255, 255, 255);
+}
+
+
+#userButton .username {
+  font-size: 40px; /* Kích thước lớn hơn cho tên */
+  font-weight: bold; /* In đậm tên */
+}
+
+#userButton .role {
+  font-weight: bold;
+  font-size: 20px; /* Kích thước nhỏ hơn cho vai trò */
+  color: #000000; /* Màu xám nhẹ hơn cho vai trò */
+  margin-top: 0px; /* Tạo khoảng cách nhỏ phía trên */
+}
+
+.floating-menu {
+  display: none;
+  position: absolute;
+  top: 90px;
+  right: 0;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.floating-menu a {
+  text-align: center; 
+  width: 200px;                /*điều chỉnh chữ*/
+  height: 60px;
+  display: inline-block;       /* Hiển thị ngang từng nút */
+  padding: 10px 10px;          /* Khoảng cách bên trong từng nút */
+  font-size: 25px;             /* Kích thước chữ */
+  text-decoration: none;       /* Bỏ gạch chân */
+  color: #000;                 /* Màu chữ */
+  background: #f9f9f9;         /* Màu nền */
+  margin-right: 4px;           /* Khoảng cách giữa các nút */
+  border-radius: 4px;          /* Bo góc nút */
+}
+
+.floating-menu a:last-child {
+  border-bottom: none;
+}
+
+
+.floating-menu a:hover {
+  background: #007bff;
+  color: white;
+}
+
+
+/* Main content */
+.main-content {
+  background-image: url('../image_c/bg.jpg');
+  background-size: 100% 100%; /* Ensure the image covers the entire background */
+  height: 99vh;
+  background-repeat: no-repeat;
+  background-position: center; /* Căn giữa ảnh */
+  background-position: top left; /* Căn góc trên bên trái */
+  background-position: 100% 100%; /* Căn theo phần trăm vùng chứa */
+}
+
+/* Table container */
+.table-container {
+  position: relative; /* Hoặc thử absolute nếu cần */
+  top: 80px; /* Điều chỉnh khoảng cách xuống dưới */
+  margin-top: 15px;
+  right: 0;
+  width: 100%;
+  margin: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Intro container */
+.intro-container {
+  position: relative;
+  top: 80px;
+  margin-top: 15px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th, td {
+  text-align: center;
+  padding: 12px;
+}
+
+th {
+  background-color: #343a40;
+  color: white;
+}
+
+tr:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+tr:nth-child(even) {
+  background-color: #e9ecef;
+}
+
+tr:first-child {
+  font-weight: bold;
+}
+
+.top1 {
+  background: gold !important;
+  color: black;
+  font-weight: bold;
+}
+
+.top2 {
+  background: silver !important;
+  color: black;
+  font-weight: bold;
+}
+
+.top3 {
+  background: #cd7f32 !important; /* Đồng */
+  color: white;
+  font-weight: bold;
+}
