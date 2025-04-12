@@ -6,6 +6,17 @@
     <title>Ứng Dụng Trắc Nghiệm Tự Nhập</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
     <style>
         /* Thêm các style này để ẩn các phần không cần thiết */
         #fileInputSection, 
@@ -194,6 +205,16 @@
             text-decoration: underline;
             cursor: pointer;
         }
+        .MathJax {
+            display: inline !important;
+            font-size: 1.1em !important;
+        }
+        
+        /* Đảm bảo công thức toán không bị ngắt dòng */
+        mjx-container[jax="CHTML"][display="true"] {
+            display: inline !important;
+            margin: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -203,7 +224,7 @@
             
             <!-- Chỉ giữ lại phần hiển thị file đã lưu -->
             <div id="fileListSection" class="mt-4">
-                <button type="button" class="btn btn-info" onclick="toggleFileList()">DANH SÁCH BÀI TẬP</button>
+                <button type="button" class="btn btn-info" onclick="toggleFileList()">Hiển thị File Đã Lưu</button>
                 <ul id="fileList" class="mt-3"></ul>
             </div>
 
@@ -495,6 +516,11 @@
             let isValidFormat = true;
         
             lines.forEach(line => {
+                // Xử lý công thức toán học
+                line = line.replace(/\$\$(.*?)\$\$/g, '\\[$1\\]')
+                           .replace(/\\\((.*?)\\\)/g, '\\($1\\)')
+                           .replace(/\\\[(.*?)\\\]/g, '\\[$1\\]');
+        
                 if (line.startsWith('Câu hỏi:')) {
                     if (currentQuestion) {
                         questions.push(currentQuestion);
@@ -534,6 +560,11 @@
                 alert("Định dạng file không đúng. Vui lòng kiểm tra lại.");
                 document.getElementById('startBtn').disabled = true;
             }
+        
+            // Render lại MathJax sau khi phân tích câu hỏi
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise();
+            }
         }
 
         function startQuiz() {
@@ -570,6 +601,10 @@
 
             document.getElementById('submitBtn').style.display = 'inline-block';
             document.getElementById('startBtn').style.display = 'none';
+
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise();
+            }
         }
 
         function goBack() {
@@ -693,6 +728,7 @@
         
             // Lưu điểm vào bảng xếp hạng
             saveRank(userlocal.name, earnedPoints.toFixed(1));
+            
         }
 
         function backToStart() {
