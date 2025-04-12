@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRẢ LỜI NGẮN</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
     <style>
         body {
@@ -173,6 +175,13 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        .math-formula {
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 3px;
+            margin: 5px 0;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -187,7 +196,7 @@
             <h1 class="text-center mb-4">TRẢ LỜI NGẮN</h1>
 
             <div id="fileListSection" class="mb-4">
-                <button type="button" class="btn btn-info" onclick="toggleFileList()">DANH SÁCH BÀI TẬP</button>
+                <button type="button" class="btn btn-info" onclick="toggleFileList()">Hiển thị File Đã Lưu</button>
                 <div id="fileList" class="file-list-container mt-3" style="display: none;"></div>
             </div>
             
@@ -244,6 +253,24 @@
         function goBack() {
             window.history.back();
         }
+
+
+        function normalizeMathFormulas(text) {
+            // Chuyển đổi công thức toán học từ Word sang định dạng MathJax
+            if (text.includes('∫') || text.includes('∑') || text.includes('√') || 
+                text.includes('^') || text.includes('_') || text.includes('∞')) {
+                text = text.replace(/(\$\$)(.*?)(\$\$)/g, '\\($2\\)');
+            }
+            
+            // Xử lý các ký tự đặc biệt
+            text = text.replace(/\\_/g, "_")
+                      .replace(/\\\*/g, "*")
+                      .replace(/\\\^/g, "^");
+            
+            return text;
+        }
+        text = normalizeMathFormulas(text);
+
 
         // Khởi tạo IndexedDB
         function initDB() {
@@ -438,37 +465,36 @@
                 const transaction = db.transaction(["rank"], "readwrite");
                 const store = transaction.objectStore("rank");
 
-                // 1. Lấy điểm hiện có từ bảng rank
-                const getRequest = store.get(name);
+                const request = store.get(name);
 
-                getRequest.onsuccess = function() {
-                    let currentScore = 0;
-                    
-                    // Nếu đã có dữ liệu, lấy điểm hiện tại
-                    if (getRequest.result) {
-                        currentScore = parseFloat(getRequest.result.score) || 0;
+                request.onsuccess = function () {
+                    const existingEntry = request.result;
+
+                    if (existingEntry) {
+                        existingEntry.score += parseFloat(newScore);
+
+                        const updateRequest = store.put(existingEntry);
+                        updateRequest.onsuccess = function () {
+                            console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
+                        };
+                        updateRequest.onerror = function () {
+                            console.error("Error updating score");
+                        };
+                    } else {
+                        const newEntry = { name: name, score: parseFloat(newScore) };
+                        const addRequest = store.add(newEntry);
+
+                        addRequest.onsuccess = function () {
+                            console.log("New rank data added successfully!");
+                        };
+                        addRequest.onerror = function () {
+                            console.error("Error adding new rank data");
+                        };
                     }
-
-                    // 2. Tính điểm mới (cộng dồn)
-                    const updatedScore = currentScore + parseFloat(newScore);
-
-                    // 3. Lưu hoặc cập nhật dữ liệu
-                    const putRequest = store.put({ 
-                        name: name, 
-                        score: parseFloat(updatedScore.toFixed(2)) // Làm tròn 2 chữ số thập phân
-                    });
-
-                    putRequest.onsuccess = function() {
-                        // console.log(`✅ Đã cập nhật điểm: ${name} - Tổng điểm: ${updatedScore.toFixed(2)}`);
-                    };
-
-                    putRequest.onerror = function() {
-                        // console.error("❌ Lỗi khi cập nhật điểm");
-                    };
                 };
 
-                getRequest.onerror = function() {
-                    // console.error("❌ Lỗi khi truy vấn dữ liệu rank");
+                request.onerror = function () {
+                    console.error("Error checking existing entry");
                 };
             });
         }
@@ -519,8 +545,14 @@
             
             for (let i = 0; i < questions.length; i++) {
                 const div = document.createElement('div');
-                div.className = 'question-container';
-                div.textContent = "Câu " + (i + 1) + " : " + questions[i];
+                div.className = 'question-container mb-3 p-3 border rounded';
+                
+                // Hiển thị câu hỏi với công thức toán học
+                const questionText = document.createElement('div');
+                questionText.className = 'mb-2';
+                questionText.innerHTML = `Câu ${i + 1}: ${questions[i]}`;
+                
+                div.appendChild(questionText);
                 
                 const input = document.createElement('input');
                 input.type = 'text';
@@ -528,14 +560,21 @@
                 input.placeholder = 'Nhập đáp án';
                 input.name = 'ans';
                 
-                div.appendChild(document.createElement('br'));
                 div.appendChild(input);
                 questionContainer.appendChild(div);
+            }
+
+            // Kích hoạt MathJax để render công thức toán học
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise().catch(err => {
+                    console.error("Lỗi MathJax:", err);
+                });
             }
 
             document.getElementById("initial-section").style.display = "none";
             document.getElementById("question-section").style.display = "block";
             document.getElementById("scoreDisplay").style.display = "none";
+            document.getElementById("back").style.display = "none";
             document.getElementById("nop_bai").disabled = false;
         }
 
@@ -567,7 +606,7 @@
             document.getElementById("scoreDisplay").style.display = "block";
             document.getElementById("nop_bai").disabled = true;
 
-            saveRank(userlocal.name, diem);
+            saveRank(userlocal.name,diem.toFixed(2));
         });
 
         // Xử lý quay lại
