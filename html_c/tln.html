@@ -6,6 +6,8 @@
     <title>TRẢ LỜI NGẮN</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -166,6 +168,13 @@
         }
         .error { border-color: #dc3545 !important; }
         .success { border-color: #28a745 !important; }
+        .math-formula {
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 3px;
+            margin: 5px 0;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -191,11 +200,6 @@
                     <button class="btn btn-primary" id="loadButton">loadFile</button>
                 </div>
                 <div id="fileFeedback" class="mt-2"></div>
-                
-                <form id="container" oninput="checkdulieu()"></form>
-                <div class="button-group">
-                    <button class="btn btn-primary" type="submit" id="submit-bt" disabled>Xử Lý File</button>
-                </div>
             </div>
 
             <div class="section">
@@ -227,13 +231,13 @@
     </div>
 
     <script>
-
         // Biến toàn cục
         let db;
         let questions = [];
         let answers = [];
         let diemchuan = 0;
         let n;
+        let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
 
         function goBack() {
             window.history.back();
@@ -439,6 +443,7 @@
                     '<div class="alert alert-danger">Lỗi khi tải danh sách file</div>';
             }
         }
+
         // Tải file đã lưu
         async function loadSavedFile(fileId) {
             try {
@@ -505,7 +510,7 @@
                 console.error("Error downloading file:", error);
                 alert("Lỗi khi tải file: " + error.message);
             }
-        }   
+        }
 
         // Hiển thị/ẩn danh sách file
         function toggleFileList() {
@@ -516,6 +521,22 @@
             } else {
                 fileList.style.display = "none";
             }
+        }
+
+        // Chuẩn hóa công thức toán học
+        function normalizeMathFormulas(text) {
+            // Chuyển đổi công thức toán học từ Word sang định dạng MathJax
+            if (text.includes('∫') || text.includes('∑') || text.includes('√') || 
+                text.includes('^') || text.includes('_') || text.includes('∞')) {
+                text = text.replace(/(\$\$)(.*?)(\$\$)/g, '\\($2\\)');
+            }
+            
+            // Xử lý các ký tự đặc biệt
+            text = text.replace(/\\_/g, "_")
+                      .replace(/\\\*/g, "*")
+                      .replace(/\\\^/g, "^");
+            
+            return text;
         }
 
         // Xử lý khi nhấn nút Tải File
@@ -539,7 +560,11 @@
                 
                 // Xử lý nội dung file
                 const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
-                const text = result.value;
+                let text = result.value;
+                
+                // Chuẩn hóa công thức toán học
+                text = normalizeMathFormulas(text);
+                
                 processFileContent(text);
                 
                 // Lưu file vào IndexedDB
@@ -553,113 +578,78 @@
                 showFeedback("Lỗi khi xử lý file: " + error.message, "red");
             }
         });
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
-        //// hàm tạo bảng xếp hạng
-        // tạo bảng rank
-        // lưu tạo bảng rank
+        // Hàm lưu điểm vào bảng xếp hạng
         function saveRank(name, newScore) {
-            openDB(() => {
-                const transaction = db.transaction(["rank"], "readwrite");
-                const store = transaction.objectStore("rank");
+            const transaction = db.transaction(["rank"], "readwrite");
+            const store = transaction.objectStore("rank");
 
-                const request = store.get(name);
+            const request = store.get(name);
 
-                request.onsuccess = function () {
-                    const existingEntry = request.result;
+            request.onsuccess = function() {
+                const existingEntry = request.result;
 
-                    if (existingEntry) {
-                        // Cộng dồn điểm số mới vào điểm số cũ
-                        existingEntry.score += parseFloat(newScore);
+                if (existingEntry) {
+                    // Cộng dồn điểm số mới vào điểm số cũ
+                    existingEntry.score += parseFloat(newScore);
 
-                        const updateRequest = store.put(existingEntry);
-                        updateRequest.onsuccess = function () {
-                            console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
-                        };
-                        updateRequest.onerror = function () {
-                            console.error("Error updating score");
-                        };
-                    } else {
-                        // Nếu chưa có dữ liệu, thêm mới
-                        const newEntry = { name: name, score: parseFloat(newScore) };
-                        const addRequest = store.add(newEntry);
+                    const updateRequest = store.put(existingEntry);
+                    updateRequest.onsuccess = function() {
+                        console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
+                    };
+                    updateRequest.onerror = function() {
+                        console.error("Error updating score");
+                    };
+                } else {
+                    // Nếu chưa có dữ liệu, thêm mới
+                    const newEntry = { name: name, score: parseFloat(newScore) };
+                    const addRequest = store.add(newEntry);
 
-                        addRequest.onsuccess = function () {
-                            console.log("New rank data added successfully!");
-                        };
-                        addRequest.onerror = function () {
-                            console.error("Error adding new rank data");
-                        };
-                    }
-                };
+                    addRequest.onsuccess = function() {
+                        console.log("New rank data added successfully!");
+                    };
+                    addRequest.onerror = function() {
+                        console.error("Error adding new rank data");
+                    };
+                }
+            };
 
-                request.onerror = function () {
-                    console.error("Error checking existing entry");
-                };
-            });
+            request.onerror = function() {
+                console.error("Error checking existing entry");
+            };
         }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Xử lý nội dung file
         function processFileContent(text) {
-            let a = text.split(" ");
-            let bien = a[0];
+            // Tách phần câu hỏi và đáp án
+            const parts = text.split(/-{3,}/);
+            if (parts.length < 2) return;
             
-            // Xử lý phần giao answer và question
-            let giao = bien.indexOf("-");
-            let dem = 0;
+            const questionPart = parts[0];
+            const answerPart = parts[1];
             
-            for (let i = giao; i < bien.length; i++) {
-                if (bien[i] != "-") break;
-                dem++;
-            }
+            // Xử lý câu hỏi
+            questions = questionPart.split('\n')
+                .filter(line => line.trim() !== '' && line.toLowerCase().includes('cau'))
+                .map(line => {
+                    const colonIndex = line.indexOf(':');
+                    const content = colonIndex !== -1 ? line.substring(colonIndex + 1).trim() : line.trim();
+                    return normalizeMathFormulas(content);
+                });
             
-            let hetgiao = giao + dem;
-            let cat = "";
-            for (let i = giao; i < hetgiao; i++) {
-                cat = cat + bien[i];
-            }  
-            bien = bien.replace(cat, "");
+            // Xử lý đáp án
+            answers = answerPart.split('\n')
+                .filter(line => line.trim() !== '' && line.toLowerCase().includes('cau'))
+                .map(line => {
+                    const colonIndex = line.indexOf(':');
+                    const content = colonIndex !== -1 ? line.substring(colonIndex + 1).trim() : line.trim();
+                    return normalizeMathFormulas(content);
+                });
             
-            // Mảng answer và question
-            let dem1 = 0;
-            let cqa = [];
-            let bd = 0;
-            let kt = 0;
-            
-            for (let i = 0; i < bien.length; i++) {
-                if (bien[i] == ":") {
-                    bd = i + 1;
-                }
-                if (bien[i] == "\n") {
-                    kt = i;
-                    dem1 = dem1 + 1; 
-                    if (bien.substring(bd, kt) != "") {
-                        if (bd != 0 && kt != 0) {
-                            cqa[dem1] = bien.substring(bd, kt);
-                            bd = 0;
-                            kt = 0;
-                        }
-                    }
-                }     
-            }
-            
-            cqa = cqa.filter(item => item.trim() !== '');
-            
-            let cqq = [];
-            let dodai = cqa.length;
-            n = dodai / 2;
-            let dem2 = 0;
-            
-            for (let i = n; i < cqa.length; i++) {
-                cqq[dem2] = cqa[i];
-                dem2++;
-            }
-            
-            questions = cqa.slice(0, n);
-            answers = cqq;
+            // Đảm bảo số lượng câu hỏi và đáp án bằng nhau
+            n = Math.min(questions.length, answers.length);
+            questions = questions.slice(0, n);
+            answers = answers.slice(0, n);
         }
 
         // Hiển thị giao diện làm bài
@@ -669,8 +659,14 @@
             
             for (let i = 0; i < questions.length; i++) {
                 const div = document.createElement('div');
-                div.className = 'question-container';
-                div.textContent = "Câu " + (i + 1) + " : " + questions[i];
+                div.className = 'question-container mb-3 p-3 border rounded';
+                
+                // Hiển thị câu hỏi với công thức toán học
+                const questionText = document.createElement('div');
+                questionText.className = 'mb-2';
+                questionText.innerHTML = `Câu ${i + 1}: ${questions[i]}`;
+                
+                div.appendChild(questionText);
                 
                 const input = document.createElement('input');
                 input.type = 'text';
@@ -678,15 +674,23 @@
                 input.placeholder = 'Nhập đáp án';
                 input.name = 'ans';
                 
-                div.appendChild(document.createElement('br'));
                 div.appendChild(input);
                 questionContainer.appendChild(div);
+            }
+
+            // Kích hoạt MathJax để render công thức toán học
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise().catch(err => {
+                    console.error("Lỗi MathJax:", err);
+                });
             }
 
             document.getElementById("initial-section").style.display = "none";
             document.getElementById("question-section").style.display = "block";
             document.getElementById("scoreDisplay").style.display = "none";
+            document.getElementById("back").style.display = "none";
             document.getElementById("nop_bai").disabled = false;
+            
         }
 
         // Xử lý nộp bài
@@ -702,7 +706,7 @@
             let dem = 0;
             
             data2.forEach((ans, index) => {
-                if (ans && ans === answers[index]) {
+                if (ans && ans.trim().toLowerCase() === answers[index].trim().toLowerCase()) {
                     dem++;
                 } 
             });
@@ -716,8 +720,9 @@
             document.getElementById("scoreValue").innerHTML = diem;
             document.getElementById("scoreDisplay").style.display = "block";
             document.getElementById("nop_bai").disabled = true;
+            document.getElementById("back").style.display = "block";
 
-            saveRank(userlocal.name,diem.toFixed(2));
+            saveRank(userlocal.name, diem);
         });
 
         // Xử lý quay lại
@@ -803,35 +808,6 @@
 
         // Gán sự kiện cho nút xóa
         document.getElementById('bt-xoa').addEventListener('click', xoa);
-
-        // Kiểm tra dữ liệu nhập
-        function checkdulieu() {
-            const container5 = document.getElementById("container");
-            const inputs = container5.querySelectorAll('input[name="kq"]');
-            let isValid = true;
-            
-            inputs.forEach(input => {
-                if (input.value.trim() === "") {
-                    input.classList.add('error');
-                    input.classList.remove('success');
-                    isValid = false;
-                } else {
-                    input.classList.remove('error');
-                    input.classList.add('success');
-                }
-            });
-            
-            if (!isValid) {
-                document.getElementById("baoloi").textContent = "Một số trường nhập liệu còn trống!";
-                document.getElementById("baoloi").style.display = "block";
-                document.getElementById("submit-bt").disabled = true;
-            } else {
-                document.getElementById("baoloi").style.display = "none";
-                document.getElementById("submit-bt").disabled = false;
-            }
-            
-            return isValid;
-        }
 
         // Hiển thị thông báo
         function showFeedback(message, color) {
