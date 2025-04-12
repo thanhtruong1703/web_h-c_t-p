@@ -1,8 +1,5 @@
 
 /* Tổng quan */
-
-
-
 body {
   padding-top: 70px; /* Đảm bảo nội dung không bị che bởi navbar */
   font-family: Arial, sans-serif;
@@ -142,7 +139,7 @@ body {
 }
 .square-buttons {
   position: absolute;
-  margin-top: 100px;
+  margin-top: 150px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
