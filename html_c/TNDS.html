@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng Dụng Trắc Nghiệm Toán Học</title>
+    <title>Ứng Dụng Trắc Nghiệm Tự Nhập</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
     <style>
         .btn-submit {
-            position: absolute;
-            top: 20px;
-            right: 150px;
+            position: absolute; /* Vị trí tuyệt đối */
+            top: 20px;      /* Cách cạnh dưới 20px */
+            right: 150px;       /* Cách cạnh phải 20px */
             padding: 6px 12px;
             font-size: 17px;
             color: white;
@@ -23,9 +33,9 @@
         }
         
         .btn-back {
-            position: absolute;
-            top: 20px;
-            right: 150px;
+            position: absolute; /* Vị trí tuyệt đối */
+            top: 20px;      /* Cách cạnh dưới 20px */
+            right: 150px;       /* Cách cạnh phải 20px */
             padding: 6px 12px;
             font-size: 17px;
             color: white;
@@ -37,9 +47,9 @@
         }
 
         .btn-start {
-            position: absolute;
-            top: 20px;
-            right: 240px;
+            position: absolute; /* Vị trí tuyệt đối */
+            top: 20px;      /* Cách cạnh dưới 20px */
+            right: 240px;       /* Cách cạnh phải 20px */
             padding: 6px 12px;
             font-size: 17px;
             color: white;
@@ -50,10 +60,11 @@
             transition: background-color 0.3s;
         }
         
+
         .back-button {
-            position: absolute;
-            top: 20px;
-            right: 150px;
+            position: absolute; /* Vị trí tuyệt đối */
+            top: 20px;      /* Cách cạnh dưới 20px */
+            right: 150px;       /* Cách cạnh phải 20px */
             padding: 6px 12px;
             font-size: 17px;
             color: white;
@@ -66,75 +77,142 @@
         .back-button:hover {
             background-color: #2980b9;
         }
-        
-        .math-formula {
+        .question-item {
             background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 5px 0;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .answers-list {
+            margin-left: 0;
+        }
+        
+        .answer-item {
+            transition: background-color 0.2s;
+        }
+        
+        .answer-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .answer-content {
+            display: inline;
+            white-space: normal;
+        }
+        
+        /* Đảm bảo radio và nội dung cùng dòng */
+        .answers-list label {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        
+        /* Căn chỉnh công thức toán */
+        .MathJax {
+            display: inline !important;
+        }
+
+        .locked-answer {
+            pointer-events: none;
+            opacity: 0.7;
         }
         
         .correct-answer {
-            color: blue;
-            font-weight: bold;
+            background-color: #e6ffed !important;
+            border-left: 4px solid #28a745 !important;
         }
         
-        .wrong-answer {
-            color: red;
+        .incorrect-answer {
+            background-color: #fff0f0 !important;
+            border-left: 4px solid #dc3545 !important;
         }
+        #scoreDisplay {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .score-pass {
+            color: #28a745;
+            background-color: #e6ffed;
+        }
+        
+        .score-fail {
+            color: #dc3545;
+            background-color: #fff0f0;
+        }
+        
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <div class="quiz-container">
-            <h1 class="text-center">ĐỀ THI TRẮC NGHIỆM TOÁN HỌC</h1>
+            <h1 class="text-center">ĐỀ THI TRẮC NGHIỆM</h1>
+
 
             <div id="fileListSection" class="mt-4">
                 <button type="button" class="btn btn-info" onclick="toggleFileList()">Hiển thị File Đã Lưu</button>
-                <ul id="fileList" class="mt-3" style="display: none;"></ul>
+                <ul id="fileList" class="mt-3"></ul>
             </div>
 
             <div id="inputSection" class="mb-4">
-                <label for="fileInput" class="form-label">Chọn File Word chứa câu hỏi:</label>
+                <label for="fileInput" class="form-label">Chọn File:</label>
                 <input type="file" id="fileInput" class="form-control" accept=".docx" style="padding-bottom: 35px;">
                 <div id="fileStorageActions" class="mt-3">
                     <button type="button" class="btn btn-primary" onclick="saveFileToIndexedDB()">Lưu File</button>
+                    <!-- <button type="button" class="btn btn-secondary" onclick="getFileFromIndexedDB()">Tải File</button> -->
+                    <!-- <button type="button" class="btn btn-info" onclick="checkFileInIndexedDB()">Kiểm tra File</button> -->
                 </div>
             </div>
 
-            <div id="feedback" class="mt-4 text-center"></div>
+
+            <div id="feedback" class="mt-4 text-center"></div> <!-- Thông báo sẽ hiển thị ở đây -->
 
             <button class="back-button" id="back" onclick="goBack()">Quay lại</button>
+
+            <script>
+                function goBack() {
+                    // Quay lại trang trước đó
+                    window.history.back();
+                }
+            </script>
             <button type="button" class="btn btn-back" id="backBtn" onclick="backToStart()" style="display: none;">Quay lại</button>
             <button type="button" class="btn btn-start" id="startBtn" onclick="startQuiz()">Làm bài</button>
             <button type="button" class="btn btn-submit" id="submitBtn" onclick="submitQuiz()" style="display: none;">Nộp bài</button>
+            <!-- Thêm div hiển thị điểm ngay sau nút Nộp bài -->
+            <div id="scoreDisplay" class="mt-3 text-center" style="display: none;"></div>
 
+            <!-- Phần nhập câu hỏi thủ công -->
             <div id="manualQuestionSection" class="mb-4">      
                 <form id="add-question-form">
-                    <h2 class="text-primary">Tạo Câu Hỏi Toán Học</h2>
+                    <h2 class="text-primary">Tạo Câu Hỏi Thủ Công </h2>
+                    <div class="alert alert-info">
+                        <p><strong>Lưu ý:</strong> Để nhập công thức toán học, sử dụng cú pháp LaTeX giữa 2 dấu $ (ví dụ: $$x^2 + y^2 = z^2$$ )</p>
+                    </div>
                     <div class="form-group">
-                        <label for="question">Nhập Câu hỏi (có thể dùng $$...$$ cho công thức):</label>
-                        <input type="text" class="form-control" id="question" name="question" required oninput="toggleAddQuestionButton()">
-                        <small class="form-text text-muted">Ví dụ: Giải phương trình $$x^2 - 5x + 6 = 0$$</small>
+                        <label for="question">Nhập Câu hỏi:</label>
+                        <textarea class="form-control" id="question" name="question" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="optionA">Đáp án A:</label>
-                            <input type="text" class="form-control" id="optionA" name="optionA" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionA" name="optionA" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="optionB">Đáp án B:</label>
-                            <input type="text" class="form-control" id="optionB" name="optionB" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionB" name="optionB" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="optionC">Đáp án C:</label>
-                            <input type="text" class="form-control" id="optionC" name="optionC" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionC" name="optionC" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="optionD">Đáp án D:</label>
-                            <input type="text" class="form-control" id="optionD" name="optionD" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionD" name="optionD" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                     </div>
                     <div class="form-group">
@@ -149,57 +227,129 @@
                     <button type="button" class="btn btn-primary" id="addQuestionButton" onclick="addQuestion()" disabled>Thêm câu hỏi</button>
                 </form>
             </div>
-
-            <div id="quizContent" class="mt-4"></div>
+            <div id="quizContent" class="mt-4">
+                <!-- Nội dung câu hỏi thêm ở đây -->
+            </div>
         </div>
     </div> 
 
     <script>
-        let db;
-        let questions = [];
-        let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
 
-        // Khởi tạo cơ sở dữ liệu
-        function openDB() {
-            const request = indexedDB.open("QuizMathDB", 3);
-            
-            request.onupgradeneeded = function(event) {
+        // tạo lưu trữ
+        let db;
+        // Hàm mở IndexedDB
+        function openDB(callback) {
+            if (db) {
+                callback();
+                return;
+            }
+
+            const request = indexedDB.open("FileStorageDB", 4);
+
+            request.onupgradeneeded = function (event) {
                 db = event.target.result;
-                
-                // Tạo store cho file
+
+                if (!db.objectStoreNames.contains("dsfiles")) {
+                    db.createObjectStore("dsfiles", { keyPath: "id" });
+                }
+
                 if (!db.objectStoreNames.contains("files")) {
                     db.createObjectStore("files", { keyPath: "id" });
                 }
-                
-                // Tạo store cho bảng xếp hạng
+
+                if (!db.objectStoreNames.contains("tlnfiles")) {
+                    db.createObjectStore("tlnfiles", { keyPath: "id" });
+                }
+
                 if (!db.objectStoreNames.contains("rank")) {
-                    const rankStore = db.createObjectStore("rank", { autoIncrement: true });
-                    rankStore.createIndex("name", "name", { unique: true });
+                    const rankStore = db.createObjectStore("rank", { keyPath: "name" }); // Sử dụng tên làm key
                     rankStore.createIndex("score", "score", { unique: false });
                 }
             };
             
-            request.onsuccess = function(event) {
+
+            request.onsuccess = function (event) {
                 db = event.target.result;
-                console.log("Database opened successfully!");
+                //console.log("✅ IndexedDB đã mở thành công!");
+                callback();
             };
-            
-            request.onerror = function(event) {
-                console.error("Error opening database", event.target.error);
+
+            request.onerror = function (event) {
+                console.error("❌ Lỗi mở IndexedDB:", event.target.error);
+                showFeedback("Không thể mở IndexedDB!", "red");
             };
         }
-        openDB();
+        
+        
+        // Hàm lưu file vào IndexedDB
+        // Hàm lưu file vào IndexedDB
+        function saveFileToIndexedDB() {
+            openDB(() => {
+                const fileInput = document.getElementById("fileInput");
+                if (!fileInput || fileInput.files.length === 0) {
+                    showFeedback("❌ Vui lòng chọn một file!", "red");
+                    return;
+                }
 
-        // Hiển thị/ẩn danh sách file
+                const file = fileInput.files[0];
+                //console.log("📂 File được chọn:", file);
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileData = event.target.result;
+
+                    const transaction = db.transaction(["files"], "readwrite");
+                    const store = transaction.objectStore("files");
+
+                    const uniqueId = 'TN-' + crypto.randomUUID(); // Tạo ID duy nhất
+                    const fileRecord = { id: uniqueId, name: file.name, content: fileData };
+
+                    const request = store.put(fileRecord);
+
+                    request.onsuccess = function () {
+                        console.log("✅ File đã lưu thành công!");
+                        showFeedback("Lưu file thành công!", "green");
+                    };
+
+                    request.onerror = function (event) {
+                        console.error("❌ Lỗi lưu file:", event.target.error);
+                        showFeedback("Lưu file thất bại!", "red");
+                    };
+                };
+
+                reader.onerror = function () {
+                    console.error("❌ Lỗi đọc file!");
+                    showFeedback("Lỗi khi đọc file!", "red");
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Hiển thị thông báo trên giao diện
+        function showFeedback(message, color) {
+            const feedback = document.getElementById("feedback");
+            feedback.innerText = message;
+            feedback.style.color = color;
+            setTimeout(() => {
+                feedback.innerText = "";
+            }, 1000);
+        }
+
+
+        //// hàm hiện danh sách đã lưu
         function toggleFileList() {
             const fileList = document.getElementById("fileList");
             
             if (!fileList) {
-                console.error("Không tìm thấy phần tử fileList");
+                console.error("Phần tử fileList không tồn tại. Vui lòng kiểm tra lại ID của phần tử này.");
                 return;
             }
+            
+            // Đặt trạng thái mặc định nếu chưa được đặt
+            //if (!fileList.style.display) {fileList.style.display = "none";}
         
-            if (fileList.style.display === "none" || fileList.style.display === "") {
+            if (fileList.style.display === "none" || fileList.style.display === "")  {
                 fileList.style.display = "block";
                 listAllFiles();
             } else {
@@ -207,172 +357,245 @@
             }
         }
 
-        // Liệt kê tất cả file trong DB
         function listAllFiles() {
-            const transaction = db.transaction(["files"], "readonly");
-            const store = transaction.objectStore("files");
-            const request = store.getAll();
+            openDB(() => {  // Đảm bảo DB đã mở trước khi truy vấn
+                const transaction = db.transaction(["files"], "readonly");
+                const store = transaction.objectStore("files");
+                const request = store.getAll();
         
-            request.onsuccess = function(event) {
-                const files = event.target.result;
-                const fileList = document.getElementById("fileList");
-                fileList.innerHTML = ""; 
+                request.onsuccess = function (event) {
+                    const files = event.target.result;
+                    const fileList = document.getElementById("fileList");
+                    fileList.innerHTML = ""; // Xóa danh sách cũ trước khi cập nhật
         
-                if (files.length > 0) {
-                    files.forEach(file => {
-                        const li = document.createElement("li");
-                        li.textContent = file.name;
-
-                        const downloadButton = document.createElement("button");
-                        downloadButton.textContent = "Tải về";
-                        downloadButton.classList.add("btn", "btn-success", "ml-2");
-                        downloadButton.onclick = function() {
-                            downloadFileFromIndexedDB(file.id);
-                        };
-                        
-                        const loadButton = document.createElement("button");
-                        loadButton.textContent = "Tải lên";
-                        loadButton.classList.add("btn", "btn-primary", "ml-2");
-                        loadButton.onclick = function() {
-                            loadFileFromIndexedDB(file.id);
-                        };
-                        
-                        li.appendChild(downloadButton);
-                        li.appendChild(loadButton);
-                        fileList.appendChild(li);
-                    });
-                } else {
-                    const li = document.createElement("li");
-                    li.textContent = "Không có file nào trong kho lưu trữ";
-                    fileList.appendChild(li);
-                }
-            };
+                    if (files.length > 0) {
+                        // Tạo bảng để hiển thị danh sách file
+                        const table = document.createElement("table");
+                        table.style.width = "100%";
+                        table.style.borderCollapse = "collapse";
         
-            request.onerror = function() {
-                alert("Lỗi khi truy cập không truy cập được file!");
-            };
-        }
-
-        // Lưu file vào IndexedDB
-        function saveFileToIndexedDB() {
-            const fileInput = document.getElementById("fileInput");
-            const file = fileInput.files[0];
+                        // Tạo tiêu đề bảng
+                        const thead = document.createElement("thead");
+                        thead.innerHTML = `
+                            <tr style="background: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">📄 Tên File</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">📥 Tải Xuống</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">❌ Xóa</th>
+                            </tr>
+                        `;
+                        table.appendChild(thead);
         
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const fileData = event.target.result;
-                    const transaction = db.transaction(["files"], "readwrite");
-                    const store = transaction.objectStore("files");
-
-                    generateUniqueId(store).then(uniqueId => {
-                        store.put({ id: uniqueId, name: file.name, content: fileData });
-                
-                        transaction.oncomplete = () => {
-                            showFeedback("Lưu thành công", "green");
-                            listAllFiles();
-                        };
-                
-                        transaction.onerror = () => {
-                            showFeedback("Lưu không thành công", "red");
-                        };
-                    });
-                };
-                reader.readAsDataURL(file);
-            } else {
-                showFeedback("Vui lòng chọn một file trước!", "red");
-            }
-        }
-
-        // Tải file từ IndexedDB
-        function downloadFileFromIndexedDB(fileId) {
-            const transaction = db.transaction(["files"], "readonly");
-            const store = transaction.objectStore("files");
-            const request = store.get(fileId);
-            
-            request.onsuccess = function(event) {
-                const result = event.target.result;
-                if (result) {
-                    const link = document.createElement("a");
-                    link.href = result.content;
-                    link.download = result.name;
-                    link.click();
-                    showFeedback("Đã tải file về", "green");
-                } else {
-                    showFeedback("Không tìm thấy file!", "red");
-                }
-            };
-            
-            request.onerror = function() {
-                showFeedback("Lỗi khi truy xuất file!", "red");
-            };
-        }
-
-        // Tải file lên từ IndexedDB
-        function loadFileFromIndexedDB(fileId) {
-            const transaction = db.transaction(["files"], "readonly");
-            const store = transaction.objectStore("files");
-            const request = store.get(fileId);
-            
-            request.onsuccess = function(event) {
-                const result = event.target.result;
-                if (result) {
-                    // Tạo một file từ dữ liệu đã lưu
-                    fetch(result.content)
-                        .then(res => res.blob())
-                        .then(blob => {
-                            const file = new File([blob], result.name, { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            document.getElementById("fileInput").files = dataTransfer.files;
+                        // Tạo phần thân bảng
+                        const tbody = document.createElement("tbody");
+        
+                        files.forEach(file => {
+                            const row = document.createElement("tr");
+        
+                            // Ô tên file
+                            const fileNameCell = document.createElement("td");
+                            fileNameCell.textContent = file.name;
+                            fileNameCell.style.border = "1px solid #ddd";
+                            fileNameCell.style.padding = "8px";
+                            fileNameCell.style.cursor = "pointer";
+                            fileNameCell.style.color = "blue";
+                            fileNameCell.style.textDecoration = "underline";
                             
-                            // Kích hoạt sự kiện change để đọc file
-                            const event = new Event("change");
-                            document.getElementById("fileInput").dispatchEvent(event);
+                            // Khi nhấn vào tên file, sẽ mở bài làm
+                            fileNameCell.onclick = function () {
+                                loadFileForQuiz(file.id);
+                            };
                             
-                            showFeedback("Đã tải file lên thành công", "green");
+        
+                            // Ô nút tải xuống
+                            const downloadCell = document.createElement("td");
+                            downloadCell.style.textAlign = "center";
+                            downloadCell.style.border = "1px solid #ddd";
+                            downloadCell.style.padding = "8px";
+        
+                            const downloadBtn = document.createElement("button");
+                            downloadBtn.textContent = "📥 Tải xuống";
+                            downloadBtn.style.backgroundColor = "#28a745"; // Màu xanh lá
+                            downloadBtn.style.color = "white";
+                            downloadBtn.style.border = "none";
+                            downloadBtn.style.padding = "5px 10px";
+                            downloadBtn.style.borderRadius = "5px";
+                            downloadBtn.style.cursor = "pointer";
+                            downloadBtn.onclick = function() {
+                                downloadFile(file);
+                            };
+                            downloadCell.appendChild(downloadBtn);
+        
+                            // Ô nút xóa
+                            const deleteCell = document.createElement("td");
+                            deleteCell.style.textAlign = "center";
+                            deleteCell.style.border = "1px solid #ddd";
+                            deleteCell.style.padding = "8px";
+        
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.textContent = "❌ Xóa";
+                            deleteBtn.style.backgroundColor = "#dc3545"; // Màu đỏ
+                            deleteBtn.style.color = "white";
+                            deleteBtn.style.border = "none";
+                            deleteBtn.style.padding = "5px 10px";
+                            deleteBtn.style.borderRadius = "5px";
+                            deleteBtn.style.cursor = "pointer";
+                            deleteBtn.onclick = function() {
+                                deleteFile(file.id);
+                            };
+                            deleteCell.appendChild(deleteBtn);
+        
+                            // Thêm các ô vào hàng
+                            row.appendChild(fileNameCell);
+                            row.appendChild(downloadCell);
+                            row.appendChild(deleteCell);
+        
+                            // Thêm hàng vào tbody
+                            tbody.appendChild(row);
                         });
-                } else {
-                    showFeedback("Không tìm thấy file!", "red");
-                }
-            };
-            
-            request.onerror = function() {
-                showFeedback("Lỗi khi truy xuất file!", "red");
-            };
-        }
-
-        // Tạo ID duy nhất
-        function generateUniqueId(store) {
-            return new Promise((resolve, reject) => {
-                const uniqueId = 'MATH-' + Math.random().toString(36).substr(2, 16);
-                const request = store.get(uniqueId);
         
-                request.onsuccess = () => {
-                    if (request.result) {
-                        resolve(generateUniqueId(store));
+                        table.appendChild(tbody);
+                        fileList.appendChild(table);
                     } else {
-                        resolve(uniqueId);
+                        fileList.innerHTML = "<p style='text-align:center;'>Không có file nào trong kho lưu trữ</p>";
                     }
                 };
         
-                request.onerror = () => {
-                    reject("Không thể tạo ID duy nhất");
+                request.onerror = function () {
+                    alert("Lỗi khi truy cập danh sách file!");
+                };
+            });
+            // hàm download file
+            function downloadFile(file) {
+                const link = document.createElement("a");
+                link.href = file.content; // Nội dung file ở dạng base64
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            /// hàm xóa file
+            function deleteFile(fileId) {
+                openDB(() => {
+                    const transaction = db.transaction(["files"], "readwrite");
+                    const store = transaction.objectStore("files");
+                    const request = store.delete(fileId);
+            
+                    request.onsuccess = function () {
+                        //alert("File đã được xóa!");
+                        listAllFiles(); // Cập nhật lại danh sách file sau khi xóa
+                    };
+            
+                    request.onerror = function () {
+                        alert("Lỗi khi xóa file!");
+                    };
+                });
+            }
+        }
+
+        /// hàm đẩy lên làm bài lại 
+        function loadFileForQuiz(fileId) {
+            openDB(() => {
+                const transaction = db.transaction(["files"], "readonly");
+                const store = transaction.objectStore("files");
+                const request = store.get(fileId);
+        
+                request.onsuccess = function (event) {
+                    const file = event.target.result;
+                    if (file) {
+                        mammoth.extractRawText({ arrayBuffer: base64ToArrayBuffer(file.content.split(",")[1]) })
+                            .then(function(output) {
+                                parseQuestions(output.value);
+                                startQuiz(); // Chuyển sang giao diện làm bài
+                            })
+                            .catch(function(err) {
+                                alert("Không thể đọc file trắc nghiệm.");
+                                console.error(err);
+                            });
+                    } else {
+                        alert("Không tìm thấy file!");
+                    }
+                };
+        
+                request.onerror = function () {
+                    alert("Lỗi khi truy xuất file!");
                 };
             });
         }
-
-        // Hiển thị thông báo
-        function showFeedback(message, color) {
-            const feedback = document.getElementById("feedback");
-            feedback.innerText = message;
-            feedback.style.color = color;
-            setTimeout(() => {
-                feedback.innerText = "";
-            }, 3000);
+        
+        // Chuyển Base64 về ArrayBuffer để đọc file Word
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
         }
+        
+        
+        // Hàm tải file và chuyển sang giao diện làm bài
+        function loadFile(file) {
+            let reader = new FileReader();
+            reader.onload = function (event) {
+                let fileContent = event.target.result;
+                document.getElementById("examContainer").innerHTML = fileContent; // Hiển thị đề bài
+            };
+            reader.readAsText(new Blob([file.content])); // Đọc nội dung file đã lưu
+        }
+        
+        
+/////  lấy tên người dùng
+//let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
+        
 
-        // Đọc file Word khi chọn file
+        //// hàm tạo bảng xếp hạng
+         // tạo bảng rank
+         // lưu tạo bảng rank
+         function saveRank(name, newScore) {
+            openDB(() => {
+                const transaction = db.transaction(["rank"], "readwrite");
+                const store = transaction.objectStore("rank");
+        
+                const request = store.get(name);
+        
+                request.onsuccess = function () {
+                    const existingEntry = request.result;
+        
+                    if (existingEntry) {
+                        // Cộng dồn điểm số mới vào điểm số cũ
+                        existingEntry.score += parseFloat(newScore);
+        
+                        const updateRequest = store.put(existingEntry);
+                        updateRequest.onsuccess = function () {
+                            console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
+                        };
+                        updateRequest.onerror = function () {
+                            console.error("Error updating score");
+                        };
+                    } else {
+                        // Nếu chưa có dữ liệu, thêm mới
+                        const newEntry = { name: name, score: parseFloat(newScore) };
+                        const addRequest = store.add(newEntry);
+        
+                        addRequest.onsuccess = function () {
+                            console.log("New rank data added successfully!");
+                        };
+                        addRequest.onerror = function () {
+                            console.error("Error adding new rank data");
+                        };
+                    }
+                };
+        
+                request.onerror = function () {
+                    console.error("Error checking existing entry");
+                };
+            });
+        }
+        //////////////////////  
+
+        let questions = [];
+        // Sự kiện đọc file Word
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) {
@@ -390,95 +613,76 @@
                     })
                     .catch(function(err) {
                         console.log(err);
-                        showFeedback('Không thể đọc file Word', 'red');
+                        alert('Không thể đọc file Word');
                     });
             };
             reader.readAsArrayBuffer(file);
         });
 
-        // Phân tích câu hỏi từ nội dung file Word
+        // Hàm phân tích câu hỏi và đáp án từ file Word
         function parseQuestions(text) {
             const lines = text.split('\n');
             questions = [];
             let currentQuestion = null;
-
+        
             lines.forEach(line => {
                 line = line.trim();
                 
-                // Chuyển đổi công thức toán học từ Word sang định dạng MathJax
-                if (line.includes('∫') || line.includes('∑') || line.includes('√') || 
-                    line.includes('^') || line.includes('_') || line.includes('∞')) {
-                    line = line.replace(/(\$\$)(.*?)(\$\$)/g, '\\($2\\)');
-                }
-
+                // Xử lý dòng trống
+                if (line === '') return;
+                
+                // Xử lý công thức toán học - giữ nguyên định dạng
+                line = line.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+                
                 if (line.startsWith('Câu hỏi:')) {
-                    if (currentQuestion) {
-                        questions.push(currentQuestion);
-                    }
-                    currentQuestion = { 
-                        question: line.replace('Câu hỏi:', '').trim(), 
-                        options: [], 
-                        correctAnswer: null 
+                    if (currentQuestion) questions.push(currentQuestion);
+                    currentQuestion = {
+                        question: line.replace('Câu hỏi:', '').trim(),
+                        options: [],
+                        correctAnswer: null
                     };
-                } else if (line.startsWith('A:')) {
-                    currentQuestion.options.push({ 
-                        text: line.replace('A:', '').trim(), 
-                        correct: false 
-                    });
-                } else if (line.startsWith('B:')) {
-                    currentQuestion.options.push({ 
-                        text: line.replace('B:', '').trim(), 
-                        correct: false 
-                    });
-                } else if (line.startsWith('C:')) {
-                    currentQuestion.options.push({ 
-                        text: line.replace('C:', '').trim(), 
-                        correct: false 
-                    });
-                } else if (line.startsWith('D:')) {
-                    currentQuestion.options.push({ 
-                        text: line.replace('D:', '').trim(), 
-                        correct: false 
-                    });
+                } else if (line.match(/^[A-D]:/)) {
+                    const optionText = line.substring(2).trim();
+                    // Loại bỏ ký tự "- ○" nếu có
+                    const cleanText = optionText.replace(/^- ○\s*/, '');
+                    
+                    if (currentQuestion) {
+                        currentQuestion.options.push({
+                            text: cleanText,
+                            correct: false
+                        });
+                    }
                 } else if (line.startsWith('Đáp án đúng:')) {
                     const correctAnswer = line.replace('Đáp án đúng:', '').trim();
-                    const correctIndex = ['A', 'B', 'C', 'D'].indexOf(correctAnswer);
-                    if (correctIndex >= 0 && currentQuestion.options[correctIndex]) {
-                        currentQuestion.options[correctIndex].correct = true;
-                        currentQuestion.correctAnswer = correctAnswer;
+                    if (currentQuestion) {
+                        const correctIndex = ['A', 'B', 'C', 'D'].indexOf(correctAnswer);
+                        if (correctIndex >= 0) {
+                            currentQuestion.options[correctIndex].correct = true;
+                            currentQuestion.correctAnswer = correctAnswer;
+                        }
                     }
                 }
             });
-
-            if (currentQuestion) {
-                questions.push(currentQuestion);
-            }
-
-            if (questions.length > 0) {
-                shuffleQuestions();
-                displayQuestions();
-                showFeedback(`Đã tải ${questions.length} câu hỏi`, "green");
-            } else {
-                showFeedback("Không tìm thấy câu hỏi trong file", "red");
-            }
+        
+            if (currentQuestion) questions.push(currentQuestion);
+            
+            shuffleQuestions();
+            displayQuestions();
         }
 
-        // Xáo trộn câu hỏi và đáp án
+        // Hàm xáo trộn (random) câu hỏi và đáp án
         function shuffleQuestions() {
             // Xáo trộn câu hỏi
             questions.sort(() => Math.random() - 0.5);
 
             // Xáo trộn đáp án của từng câu hỏi
             questions.forEach(q => {
-                // Lưu đáp án đúng trước khi xáo trộn
-                const correctOptionIndex = q.options.findIndex(option => option.correct);
-                
-                // Xáo trộn đáp án
                 q.options.sort(() => Math.random() - 0.5);
-                
-                // Cập nhật lại đáp án đúng sau khi xáo trộn
-                if (correctOptionIndex >= 0) {
-                    q.correctAnswer = ['A', 'B', 'C', 'D'][q.options.findIndex(option => option.correct)];
+                // Điều chỉnh lại chỉ số đáp án đúng
+                const correctOption = q.options.find(option => option.correct);
+                if (correctOption) {
+                    const correctIndex = q.options.indexOf(correctOption);
+                    q.correctAnswer = ['A', 'B', 'C', 'D'][correctIndex];
                 }
             });
         }
@@ -487,58 +691,48 @@
         function displayQuestions() {
             const quizForm = document.getElementById('quizContent');
             quizForm.innerHTML = '';
-
-            if (questions.length === 0) {
-                quizForm.innerHTML = '<p class="text-center">Không có câu hỏi nào để hiển thị</p>';
-                return;
-            }
-
+        
             questions.forEach((q, index) => {
                 const questionDiv = document.createElement('div');
-                questionDiv.classList.add('form-group', 'mb-4', 'p-3', 'border', 'rounded');
+                questionDiv.className = 'form-group question-item mb-4 p-3 border rounded bg-light';
                 
                 // Hiển thị câu hỏi
-                const questionText = document.createElement('div');
-                questionText.innerHTML = `<strong>Câu ${index + 1}:</strong> ${q.question}`;
-                questionDiv.appendChild(questionText);
-
-                // Hiển thị đáp án
+                questionDiv.innerHTML = `<div class="question-text mb-3"><strong>Câu ${index + 1}:</strong> ${q.question}</div>`;
+        
+                // Tạo danh sách đáp án
                 const answersUl = document.createElement('ul');
-                answersUl.classList.add('answers', 'list-unstyled', 'mt-2');
+                answersUl.className = 'answers-list list-unstyled';
                 
                 q.options.forEach((option, i) => {
                     const optionLetter = String.fromCharCode(65 + i);
                     const li = document.createElement('li');
-                    li.classList.add('mb-2');
+                    li.className = 'answer-item mb-2 p-2 rounded';
                     
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = `answer${index}`;
-                    radio.value = i;
-                    radio.id = `answer${index}_${i}`;
-                    radio.classList.add('mr-2');
+                    // Hiển thị đáp án trên cùng một dòng
+                    li.innerHTML = `
+                        <label class="d-flex align-items-center m-0">
+                            <input type="radio" name="answer${index}" value="${i}" class="mr-2">
+                            <span class="answer-content">${optionLetter}. ${option.text}</span>
+                        </label>
+                    `;
                     
-                    const label = document.createElement('label');
-                    label.htmlFor = `answer${index}_${i}`;
-                    label.innerHTML = `<strong>${optionLetter}.</strong> ${option.text}`;
-                    
-                    li.appendChild(radio);
-                    li.appendChild(label);
                     answersUl.appendChild(li);
                 });
-
+        
                 questionDiv.appendChild(answersUl);
                 quizForm.appendChild(questionDiv);
             });
-
-            // Render lại MathJax để hiển thị công thức toán học
-            MathJax.typesetPromise().catch((err) => console.log(err.message));
+        
+            // Render MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
 
-        // Bắt đầu làm bài
+        // Hàm bắt đầu làm bài
         function startQuiz() {
             if (questions.length === 0) {
-                showFeedback("Xin hãy thêm file hoặc thêm câu hỏi.", "red");
+                alert("Xin hãy thêm file hoặc thêm câu hỏi.");
                 return;
             }
            
@@ -547,89 +741,74 @@
             document.getElementById('manualQuestionSection').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'inline-block';
             document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('back').style.display = 'none';
-            
-            // Cuộn lên đầu trang
-            window.scrollTo(0, 0);
         }
 
-        // Nộp bài
+        // Hàm nộp bài
         function submitQuiz() {
             if (questions.length === 0) {
                 showFeedback("Xin hãy thêm file hoặc thêm câu hỏi.", "red");
                 return;
             }
-
+        
             let correctAnswers = 0;
-
+        
+            // Khóa tất cả các input radio
+            const allRadioInputs = document.querySelectorAll('input[type="radio"]');
+            allRadioInputs.forEach(input => {
+                input.disabled = true;
+                input.parentElement.parentElement.classList.add('locked-answer');
+            });
+        
             questions.forEach((q, index) => {
                 const selected = document.querySelector(`input[name="answer${index}"]:checked`);
                 const isCorrect = selected ? q.options[selected.value].correct : false;
-
+        
+                // Đánh dấu đáp án đúng/sai
                 const answers = document.querySelectorAll(`input[name="answer${index}"]`);
                 answers.forEach((answer) => {
                     const parentLi = answer.closest('li');
+                    
                     if (q.options[answer.value].correct) {
+                        // Đáp án đúng
                         parentLi.classList.add('correct-answer');
+                        parentLi.style.color = 'green';
+                        parentLi.style.fontWeight = 'bold';
                     } else if (selected && answer.value === selected.value) {
-                        parentLi.classList.add('wrong-answer');
+                        // Đáp án sai đã chọn
+                        parentLi.classList.add('incorrect-answer');
+                        parentLi.style.color = 'red';
                     }
                 });
-
+        
                 if (isCorrect) correctAnswers++;
             });
-
+        
             const maxScore = 10;
             const score = (correctAnswers / questions.length) * maxScore;
             const finalScore = Math.min(Math.max(score, 0), 10);
-
-            // Hiển thị kết quả
-            const resultDiv = document.createElement('div');
-            resultDiv.classList.add('alert', 'alert-info', 'mt-4');
-            resultDiv.innerHTML = `
-                <h4 class="alert-heading">Kết quả</h4>
-                <p>Bạn đã trả lời đúng <strong>${correctAnswers}</strong> trên <strong>${questions.length}</strong> câu hỏi.</p>
-                <hr>
-                <p class="mb-0">Điểm của bạn là: <strong>${finalScore.toFixed(1)}</strong></p>
+            const scorePercentage = (correctAnswers / questions.length * 100).toFixed(1);
+        
+            // Hiển thị điểm
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.style.display = 'block';
+            
+            // Thiết lập màu sắc dựa trên điểm số
+            if (finalScore >= 5) {
+                scoreDisplay.className = 'mt-3 text-center score-pass';
+            } else {
+                scoreDisplay.className = 'mt-3 text-center score-fail';
+            }
+            
+            scoreDisplay.innerHTML = `
+                <div>Bạn đã trả lời đúng <strong>${correctAnswers}/${questions.length}</strong> câu hỏi</div>
+                <div>Điểm số: <strong>${finalScore.toFixed(1)}/${maxScore}</strong> (${scorePercentage}%)</div>
             `;
-            
-            document.getElementById('quizContent').prepend(resultDiv);
-            
-            // Cuộn lên đầu trang để xem kết quả
-            window.scrollTo(0, 0);
-
+        
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('backBtn').style.display = 'inline-block';
-
-            // Lưu kết quả nếu có người dùng đăng nhập
-            if (userlocal && userlocal.name) {
-                saveRank(userlocal.name, finalScore.toFixed(1));
-            }
-        }
-
-        // Lưu kết quả vào bảng xếp hạng
-        function saveRank(name, score) {
-            const transaction = db.transaction(["rank"], "readwrite");
-            const store = transaction.objectStore("rank");
-            const index = store.index("name");
+            document.getElementById('fileListSection').style.display = 'none';
         
-            const request = index.get(name);
-        
-            request.onsuccess = function() {
-                const existingEntry = request.result;
-        
-                if (existingEntry) {
-                    // Cập nhật điểm số nếu điểm mới cao hơn
-                    if (parseFloat(score) > parseFloat(existingEntry.score)) {
-                        existingEntry.score = score;
-                        store.put(existingEntry);
-                    }
-                } else {
-                    // Thêm mới nếu tên chưa tồn tại
-                    const newEntry = { name: name, score: score };
-                    store.add(newEntry);
-                }
-            };
+            //saveRank(userlocal.name, finalScore.toFixed(1));
         }
 
         // Quay lại phần nhập câu hỏi
@@ -642,11 +821,20 @@
             document.getElementById('manualQuestionSection').style.display = 'block';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('backBtn').style.display = 'none';
-            document.getElementById('back').style.display = 'block';
+            document.getElementById('scoreDisplay').style.display = 'none'; // Ẩn phần hiển thị điểm
             document.getElementById('add-question-form').reset();
+            
+            // Bỏ khóa tất cả các input radio (nếu có)
+            const allRadioInputs = document.querySelectorAll('input[type="radio"]');
+            allRadioInputs.forEach(input => {
+                input.disabled = false;
+                if (input.parentElement && input.parentElement.parentElement) {
+                    input.parentElement.parentElement.classList.remove('locked-answer');
+                }
+            });
         }
 
-        // Thêm câu hỏi thủ công
+        // Hàm thêm câu hỏi thủ công
         function addQuestion() {
             const question = document.getElementById('question').value;
             const optionA = document.getElementById('optionA').value;
@@ -654,48 +842,61 @@
             const optionC = document.getElementById('optionC').value;
             const optionD = document.getElementById('optionD').value;
             const correctOption = document.getElementById('correctOption').value;
-
+        
+            if (!question || !optionA || !optionB || !optionC || !optionD || !correctOption) {
+                alert("Vui lòng điền đầy đủ thông tin câu hỏi và đáp án!");
+                return;
+            }
+        
             const options = [
                 { text: optionA, correct: correctOption === 'A' },
                 { text: optionB, correct: correctOption === 'B' },
                 { text: optionC, correct: correctOption === 'C' },
                 { text: optionD, correct: correctOption === 'D' }
             ];
-
-            questions.push({ question, options, correctAnswer: correctOption });
+        
+            questions.push({ 
+                question: question, 
+                options: options,
+                correctAnswer: correctOption
+            });
+        
+            shuffleQuestions();
             displayQuestions();
-            
-            // Reset form
-            document.getElementById('add-question-form').reset();
             document.getElementById('addQuestionButton').disabled = true;
+            document.getElementById('add-question-form').reset();
             
-            // Render lại MathJax
-            MathJax.typesetPromise().catch((err) => console.log(err.message));
+            // Render lại MathJax sau khi thêm câu hỏi mới
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
 
-        // Kiểm tra nút "Thêm câu hỏi"
-        function toggleAddQuestionButton() {
-            const isValid = document.getElementById('question').value && 
-                          document.getElementById('optionA').value && 
-                          document.getElementById('optionB').value && 
-                          document.getElementById('optionC').value && 
-                          document.getElementById('optionD').value;
-            
-            document.getElementById('addQuestionButton').disabled = !isValid;
-        }
+// Kích hoạt hoặc vô hiệu hóa nút "Thêm câu hỏi" tùy vào việc nhập dữ liệu
+function toggleAddQuestionButton() {
+    const question = document.getElementById('question').value;
+    const optionA = document.getElementById('optionA').value;
+    const optionB = document.getElementById('optionB').value;
+    const optionC = document.getElementById('optionC').value;
+    const optionD = document.getElementById('optionD').value;
+    const correctOption = document.getElementById('correctOption').value;
 
-        // Quay lại trang trước
-        function goBack() {
-            window.history.back();
-        }
+    // Nút "Thêm câu hỏi" chỉ hoạt động khi tất cả các trường đều có giá trị
+    const isValid = question && optionA && optionB && optionC && optionD && correctOption;
 
-        // Sự kiện khi nhập liệu vào form thêm câu hỏi
-        document.getElementById('question').addEventListener('input', toggleAddQuestionButton);
-        document.getElementById('optionA').addEventListener('input', toggleAddQuestionButton);
-        document.getElementById('optionB').addEventListener('input', toggleAddQuestionButton);
-        document.getElementById('optionC').addEventListener('input', toggleAddQuestionButton);
-        document.getElementById('optionD').addEventListener('input', toggleAddQuestionButton);
-        document.getElementById('correctOption').addEventListener('change', toggleAddQuestionButton);
+    // Kích hoạt nút nếu tất cả thông tin được điền đầy đủ
+    if (isValid) {
+        document.getElementById('addQuestionButton').disabled = false;
+    }
+}
+
+// Sự kiện mỗi khi người dùng nhập liệu vào các trường
+document.getElementById('question').addEventListener('input', toggleAddQuestionButton);
+document.getElementById('optionA').addEventListener('input', toggleAddQuestionButton);
+document.getElementById('optionB').addEventListener('input', toggleAddQuestionButton);
+document.getElementById('optionC').addEventListener('input', toggleAddQuestionButton);
+document.getElementById('optionD').addEventListener('input', toggleAddQuestionButton);
+document.getElementById('correctOption').addEventListener('input', toggleAddQuestionButton);
     </script>
 </body>
 </html>
