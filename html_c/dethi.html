@@ -109,15 +109,15 @@
             <h1 class="text-center">ĐỀ THI TRẮC NGHIỆM</h1>
 
             <div id="fileInputSection" class="mb-4">
-                <label for="fileInput1" class="form-label">Chọn File Word 1:</label>
+                <label for="fileInput1" class="form-label">Chọn File Word 1 (3 điểm):</label>
                 <input type="file" id="fileInput1" class="form-control" accept=".docx">
                 <div id="fileUploadFeedback1" class="mt-3"></div>
                 
-                <label for="fileInput2" class="form-label mt-3">Chọn File Word 2:</label>
+                <label for="fileInput2" class="form-label mt-3">Chọn File Word 2 (4 điểm):</label>
                 <input type="file" id="fileInput2" class="form-control" accept=".docx">
                 <div id="fileUploadFeedback2" class="mt-3"></div>
 
-                <label for="fileInput3" class="form-label mt-3">Chọn File Word 3:</label>
+                <label for="fileInput3" class="form-label mt-3">Chọn File Word 3 (3 điểm):</label>
                 <input type="file" id="fileInput3" class="form-control" accept=".docx">
                 <div id="fileUploadFeedback3" class="mt-3"></div> 
             </div>
@@ -140,20 +140,24 @@
 
     <script>
         let questions = [];
-        let maxScore1 = 3;
-        let maxScore2 = 4;
-        let maxScore3 = 3;
+        let maxScore1 = 3;  // File 1: 3 điểm
+        let maxScore2 = 4;  // File 2: 4 điểm
+        let maxScore3 = 3;  // File 3: 3 điểm
+        let currentFileIndex = 0;
 
         document.getElementById('fileInput1').addEventListener('change', function(event) {
             handleFileUpload(event, 'fileUploadFeedback1', maxScore1);
+            currentFileIndex = 1;
         });
 
         document.getElementById('fileInput2').addEventListener('change', function(event) {
             handleFileUpload(event, 'fileUploadFeedback2', maxScore2);
+            currentFileIndex = 2;
         });
 
         document.getElementById('fileInput3').addEventListener('change', function(event) {
             handleFileUpload(event, 'fileUploadFeedback3', maxScore3);
+            currentFileIndex = 3;
         });
 
         function handleFileUpload(event, feedbackElementId, maxScore) {
@@ -169,7 +173,6 @@
                 mammoth.extractRawText({ arrayBuffer: arrayBuffer })
                     .then(function(result) {
                         const text = result.value;
-
                         parseQuestions(text, feedbackElementId, maxScore);
                         data_inside(text);
                     })
@@ -193,7 +196,7 @@
                     if (currentQuestion) {
                         questions.push(currentQuestion);
                     }
-                    currentQuestion = { question: line.replace('Câu hỏi:', '').trim(), options: {}, correctAnswers: [], maxScore };
+                    currentQuestion = { question: line.replace('Câu hỏi:', '').trim(), options: {}, correctAnswers: [], maxScore, fileIndex: currentFileIndex };
                 } else if (line.startsWith('A:')) {
                     currentQuestion.options.A = line.replace('A:', '').trim();
                 } else if (line.startsWith('B:')) {
@@ -296,32 +299,45 @@
         }
 
         function calculateScore(selectedAnswers, correctAnswers) {
-            let totalPoints = 0;
-            let earnedPoints = 0;
+            let fileScores = { 1: 0, 2: 0, 3: 0 }; // Điểm cho từng file
+            let fileQuestionCounts = { 1: 0, 2: 0, 3: 0 }; // Số câu hỏi trong từng file
 
+            // Đếm số câu hỏi trong mỗi file
+            questions.forEach(q => {
+                fileQuestionCounts[q.fileIndex]++;
+            });
+
+            // Tính điểm cho từng câu hỏi
             questions.forEach((q, index) => {
-                totalPoints += q.maxScore;
                 const correctOptions = correctAnswers[index];
                 const selectedOptions = selectedAnswers[index];
+                let questionScore = 0;
 
-                let questionPoints = 0;
+                // Tính điểm cho câu hỏi này (tối đa là maxScore của file / số câu hỏi trong file)
+                const maxQuestionScore = q.maxScore / fileQuestionCounts[q.fileIndex];
+
+                // Kiểm tra từng đáp án
                 Object.keys(q.options).forEach(optionKey => {
                     const isSelected = selectedOptions.includes(optionKey);
                     const isCorrect = correctOptions.includes(optionKey);
 
                     const parentDiv = document.querySelector(`input[name="question${index}_${optionKey}"]`).parentElement;
-                    if ((isCorrect && isSelected) || (!isCorrect && !isSelected)) {
+                    if (isCorrect && isSelected) {
                         parentDiv.classList.add('correct');
-                        questionPoints += q.maxScore / Object.keys(q.options).length;
-                    } else {
+                        questionScore += maxQuestionScore / correctOptions.length;
+                    } else if (!isCorrect && isSelected) {
+                        parentDiv.classList.add('incorrect');
+                    } else if (isCorrect && !isSelected) {
                         parentDiv.classList.add('incorrect');
                     }
                 });
 
-                earnedPoints += questionPoints;
+                fileScores[q.fileIndex] += questionScore;
             });
 
-            return (earnedPoints / totalPoints) * 10;
+            // Tính tổng điểm (tối đa 10 điểm)
+            const totalScore = fileScores[1] + fileScores[2] + fileScores[3];
+            return Math.min(totalScore, 10); // Đảm bảo không vượt quá 10 điểm
         }
 
         function displayScore(score) {
@@ -334,6 +350,7 @@
             scoreDisplayBottom.style.backgroundColor = '#f8f9fa';
             scoreDisplayBottom.style.padding = '10px';
             scoreDisplayBottom.style.borderRadius = '5px';
+            scoreDisplayBottom.innerHTML = `Điểm của bạn là: ${score.toFixed(1)}`;
             document.getElementById('submitBtn').insertAdjacentElement('afterend', scoreDisplayBottom);
         }
 
@@ -347,30 +364,47 @@
         }
 
         function displayResultMessage(selectedAnswers, correctAnswers) {
-            let totalPoints = 0;
-            let earnedPoints = 0;
+            let fileScores = { 1: 0, 2: 0, 3: 0 };
+            let fileQuestionCounts = { 1: 0, 2: 0, 3: 0 };
 
+            // Đếm số câu hỏi trong mỗi file
+            questions.forEach(q => {
+                fileQuestionCounts[q.fileIndex]++;
+            });
+
+            // Tính điểm cho từng file
             questions.forEach((q, index) => {
-                totalPoints += q.maxScore;
                 const correctOptions = correctAnswers[index];
                 const selectedOptions = selectedAnswers[index];
+                let questionScore = 0;
 
-                let questionPoints = 0;
+                const maxQuestionScore = q.maxScore / fileQuestionCounts[q.fileIndex];
+
+                // Kiểm tra từng đáp án
                 Object.keys(q.options).forEach(optionKey => {
                     const isSelected = selectedOptions.includes(optionKey);
                     const isCorrect = correctOptions.includes(optionKey);
 
-                    if ((isCorrect && isSelected) || (!isCorrect && !isSelected)) {
-                        questionPoints += q.maxScore / Object.keys(q.options).length;
+                    if (isCorrect && isSelected) {
+                        questionScore += maxQuestionScore / correctOptions.length;
                     }
                 });
 
-                earnedPoints += questionPoints;
+                fileScores[q.fileIndex] += questionScore;
             });
 
+            const totalScore = fileScores[1] + fileScores[2] + fileScores[3];
             const resultMessage = document.getElementById('resultSection');
             resultMessage.style.display = 'block';
-            resultMessage.innerHTML = `Bạn đã trả lời đúng ${earnedPoints.toFixed(1)} trên tổng số ${totalPoints.toFixed(1)} điểm.`;
+            resultMessage.innerHTML = `
+                <p>Bạn đã trả lời đúng ${totalScore.toFixed(1)} trên tổng số 10 điểm.</p>
+                <p>Chi tiết:</p>
+                <ul>
+                    <li>File 1: ${fileScores[1].toFixed(1)} / 3 điểm</li>
+                    <li>File 2: ${fileScores[2].toFixed(1)} / 4 điểm</li>
+                    <li>File 3: ${fileScores[3].toFixed(1)} / 3 điểm</li>
+                </ul>
+            `;
         }
 
         function backToStart() {
@@ -471,7 +505,7 @@
                 console.log(values);
 
                 let tong_ket = 0;
-                let diemchuan1 = 3 / n;
+                let diemchuan1 = 3 / n; // Điểm chuẩn cho file 1 (3 điểm)
                 for (let i = 0; i < n; i++) {
                     if (cqq[i] == values[i]) tong_ket++;
                 }
@@ -485,7 +519,6 @@
 
             document.getElementById("container").style.display = "none";
         }
-
 
         function xoa() {
             const containerfile = document.getElementById('container');
