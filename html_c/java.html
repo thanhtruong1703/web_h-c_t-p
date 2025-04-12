@@ -6,6 +6,17 @@
     <title>Ứng Dụng Trắc Nghiệm Tự Nhập</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
     <style>
         .btn-submit {
             position: absolute; /* Vị trí tuyệt đối */
@@ -66,6 +77,72 @@
         .back-button:hover {
             background-color: #2980b9;
         }
+        .question-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .answers-list {
+            margin-left: 0;
+        }
+        
+        .answer-item {
+            transition: background-color 0.2s;
+        }
+        
+        .answer-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .answer-content {
+            display: inline;
+            white-space: normal;
+        }
+        
+        /* Đảm bảo radio và nội dung cùng dòng */
+        .answers-list label {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        
+        /* Căn chỉnh công thức toán */
+        .MathJax {
+            display: inline !important;
+        }
+
+        .locked-answer {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        .correct-answer {
+            background-color: #e6ffed !important;
+            border-left: 4px solid #28a745 !important;
+        }
+        
+        .incorrect-answer {
+            background-color: #fff0f0 !important;
+            border-left: 4px solid #dc3545 !important;
+        }
+        #scoreDisplay {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .score-pass {
+            color: #28a745;
+            background-color: #e6ffed;
+        }
+        
+        .score-fail {
+            color: #dc3545;
+            background-color: #fff0f0;
+        }
         
     </style>
 </head>
@@ -104,33 +181,38 @@
             <button type="button" class="btn btn-back" id="backBtn" onclick="backToStart()" style="display: none;">Quay lại</button>
             <button type="button" class="btn btn-start" id="startBtn" onclick="startQuiz()">Làm bài</button>
             <button type="button" class="btn btn-submit" id="submitBtn" onclick="submitQuiz()" style="display: none;">Nộp bài</button>
+            <!-- Thêm div hiển thị điểm ngay sau nút Nộp bài -->
+            <div id="scoreDisplay" class="mt-3 text-center" style="display: none;"></div>
 
             <!-- Phần nhập câu hỏi thủ công -->
             <div id="manualQuestionSection" class="mb-4">      
                 <form id="add-question-form">
                     <h2 class="text-primary">Tạo Câu Hỏi Thủ Công </h2>
+                    <div class="alert alert-info">
+                        <p><strong>Lưu ý:</strong> Để nhập công thức toán học, sử dụng cú pháp LaTeX giữa 2 dấu $ (ví dụ: $$x^2 + y^2 = z^2$$ )</p>
+                    </div>
                     <div class="form-group">
                         <label for="question">Nhập Câu hỏi:</label>
-                        <input type="text" class="form-control" id="question" name="question" required oninput="toggleAddQuestionButton()">
+                        <textarea class="form-control" id="question" name="question" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="optionA">Đáp án A:</label>
-                            <input type="text" class="form-control" id="optionA" name="optionA" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionA" name="optionA" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="optionB">Đáp án B:</label>
-                            <input type="text" class="form-control" id="optionB" name="optionB" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionB" name="optionB" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="optionC">Đáp án C:</label>
-                            <input type="text" class="form-control" id="optionC" name="optionC" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionC" name="optionC" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="optionD">Đáp án D:</label>
-                            <input type="text" class="form-control" id="optionD" name="optionD" required oninput="toggleAddQuestionButton()">
+                            <textarea class="form-control" id="optionD" name="optionD" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                         </div>
                     </div>
                     <div class="form-group">
@@ -145,7 +227,6 @@
                     <button type="button" class="btn btn-primary" id="addQuestionButton" onclick="addQuestion()" disabled>Thêm câu hỏi</button>
                 </form>
             </div>
-
             <div id="quizContent" class="mt-4">
                 <!-- Nội dung câu hỏi thêm ở đây -->
             </div>
@@ -220,7 +301,7 @@
                     const transaction = db.transaction(["files"], "readwrite");
                     const store = transaction.objectStore("files");
 
-                    const uniqueId = 'DS-' + crypto.randomUUID(); // Tạo ID duy nhất
+                    const uniqueId = 'TN-' + crypto.randomUUID(); // Tạo ID duy nhất
                     const fileRecord = { id: uniqueId, name: file.name, content: fileData };
 
                     const request = store.put(fileRecord);
@@ -465,7 +546,7 @@
         
         
 /////  lấy tên người dùng
-let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
+//let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
         
 
         //// hàm tạo bảng xếp hạng
@@ -543,33 +624,49 @@ let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
             const lines = text.split('\n');
             questions = [];
             let currentQuestion = null;
-
+        
             lines.forEach(line => {
+                line = line.trim();
+                
+                // Xử lý dòng trống
+                if (line === '') return;
+                
+                // Xử lý công thức toán học - giữ nguyên định dạng
+                line = line.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+                
                 if (line.startsWith('Câu hỏi:')) {
+                    if (currentQuestion) questions.push(currentQuestion);
+                    currentQuestion = {
+                        question: line.replace('Câu hỏi:', '').trim(),
+                        options: [],
+                        correctAnswer: null
+                    };
+                } else if (line.match(/^[A-D]:/)) {
+                    const optionText = line.substring(2).trim();
+                    // Loại bỏ ký tự "- ○" nếu có
+                    const cleanText = optionText.replace(/^- ○\s*/, '');
+                    
                     if (currentQuestion) {
-                        questions.push(currentQuestion);
+                        currentQuestion.options.push({
+                            text: cleanText,
+                            correct: false
+                        });
                     }
-                    currentQuestion = { question: line.replace('Câu hỏi:', '').trim(), options: [], correctAnswer: null };
-                } else if (line.startsWith('A:')) {
-                    currentQuestion.options.push({ text: line.replace('A:', '').trim(), correct: false });
-                } else if (line.startsWith('B:')) {
-                    currentQuestion.options.push({ text: line.replace('B:', '').trim(), correct: false });
-                } else if (line.startsWith('C:')) {
-                    currentQuestion.options.push({ text: line.replace('C:', '').trim(), correct: false });
-                } else if (line.startsWith('D:')) {
-                    currentQuestion.options.push({ text: line.replace('D:', '').trim(), correct: false });
                 } else if (line.startsWith('Đáp án đúng:')) {
                     const correctAnswer = line.replace('Đáp án đúng:', '').trim();
-                    const correctIndex = ['A', 'B', 'C', 'D'].indexOf(correctAnswer);
-                    currentQuestion.options[correctIndex].correct = true;
+                    if (currentQuestion) {
+                        const correctIndex = ['A', 'B', 'C', 'D'].indexOf(correctAnswer);
+                        if (correctIndex >= 0) {
+                            currentQuestion.options[correctIndex].correct = true;
+                            currentQuestion.correctAnswer = correctAnswer;
+                        }
+                    }
                 }
             });
-
-            if (currentQuestion) {
-                questions.push(currentQuestion);
-            }
-
-            shuffleQuestions(); // Random hóa câu hỏi và đáp án
+        
+            if (currentQuestion) questions.push(currentQuestion);
+            
+            shuffleQuestions();
             displayQuestions();
         }
 
@@ -594,25 +691,42 @@ let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
         function displayQuestions() {
             const quizForm = document.getElementById('quizContent');
             quizForm.innerHTML = '';
-
+        
             questions.forEach((q, index) => {
                 const questionDiv = document.createElement('div');
-                questionDiv.classList.add('form-group');
-                questionDiv.innerHTML = `<strong>${index + 1}. ${q.question}</strong>`;
-
+                questionDiv.className = 'form-group question-item mb-4 p-3 border rounded bg-light';
+                
+                // Hiển thị câu hỏi
+                questionDiv.innerHTML = `<div class="question-text mb-3"><strong>Câu ${index + 1}:</strong> ${q.question}</div>`;
+        
+                // Tạo danh sách đáp án
                 const answersUl = document.createElement('ul');
-                answersUl.classList.add('answers');
+                answersUl.className = 'answers-list list-unstyled';
+                
                 q.options.forEach((option, i) => {
                     const optionLetter = String.fromCharCode(65 + i);
                     const li = document.createElement('li');
-                    li.innerHTML = `<input type="radio" name="answer${index}" value="${i}"> ${optionLetter}. ${option.text}`;
+                    li.className = 'answer-item mb-2 p-2 rounded';
+                    
+                    // Hiển thị đáp án trên cùng một dòng
+                    li.innerHTML = `
+                        <label class="d-flex align-items-center m-0">
+                            <input type="radio" name="answer${index}" value="${i}" class="mr-2">
+                            <span class="answer-content">${optionLetter}. ${option.text}</span>
+                        </label>
+                    `;
+                    
                     answersUl.appendChild(li);
                 });
-
+        
                 questionDiv.appendChild(answersUl);
                 quizForm.appendChild(questionDiv);
-                
             });
+        
+            // Render MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
 
         // Hàm bắt đầu làm bài
@@ -632,43 +746,69 @@ let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
         // Hàm nộp bài
         function submitQuiz() {
             if (questions.length === 0) {
-                alert("Xin hãy thêm file hoặc thêm câu hỏi.");
+                showFeedback("Xin hãy thêm file hoặc thêm câu hỏi.", "red");
                 return;
             }
-
+        
             let correctAnswers = 0;
-
+        
+            // Khóa tất cả các input radio
+            const allRadioInputs = document.querySelectorAll('input[type="radio"]');
+            allRadioInputs.forEach(input => {
+                input.disabled = true;
+                input.parentElement.parentElement.classList.add('locked-answer');
+            });
+        
             questions.forEach((q, index) => {
                 const selected = document.querySelector(`input[name="answer${index}"]:checked`);
                 const isCorrect = selected ? q.options[selected.value].correct : false;
-
+        
+                // Đánh dấu đáp án đúng/sai
                 const answers = document.querySelectorAll(`input[name="answer${index}"]`);
                 answers.forEach((answer) => {
-                    const parentDiv = answer.closest('li');
+                    const parentLi = answer.closest('li');
+                    
                     if (q.options[answer.value].correct) {
-                        parentDiv.style.color = 'blue';  
-                    } else {
-                        parentDiv.style.color = 'red';    
+                        // Đáp án đúng
+                        parentLi.classList.add('correct-answer');
+                        parentLi.style.color = 'green';
+                        parentLi.style.fontWeight = 'bold';
+                    } else if (selected && answer.value === selected.value) {
+                        // Đáp án sai đã chọn
+                        parentLi.classList.add('incorrect-answer');
+                        parentLi.style.color = 'red';
                     }
                 });
-
+        
                 if (isCorrect) correctAnswers++;
-                
-
             });
-
+        
             const maxScore = 10;
             const score = (correctAnswers / questions.length) * maxScore;
             const finalScore = Math.min(Math.max(score, 0), 10);
-
-            alert(`Bạn đã trả lời đúng ${correctAnswers} trên ${questions.length} câu hỏi.\nĐiểm của bạn là: ${finalScore.toFixed(1)}`);
-
+            const scorePercentage = (correctAnswers / questions.length * 100).toFixed(1);
+        
+            // Hiển thị điểm
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.style.display = 'block';
+            
+            // Thiết lập màu sắc dựa trên điểm số
+            if (finalScore >= 5) {
+                scoreDisplay.className = 'mt-3 text-center score-pass';
+            } else {
+                scoreDisplay.className = 'mt-3 text-center score-fail';
+            }
+            
+            scoreDisplay.innerHTML = `
+                <div>Bạn đã trả lời đúng <strong>${correctAnswers}/${questions.length}</strong> câu hỏi</div>
+                <div>Điểm số: <strong>${finalScore.toFixed(1)}/${maxScore}</strong> (${scorePercentage}%)</div>
+            `;
+        
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('backBtn').style.display = 'inline-block';
             document.getElementById('fileListSection').style.display = 'none';
-
+        
             //saveRank(userlocal.name, finalScore.toFixed(1));
-            
         }
 
         // Quay lại phần nhập câu hỏi
@@ -681,43 +821,56 @@ let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
             document.getElementById('manualQuestionSection').style.display = 'block';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('scoreDisplay').style.display = 'none'; // Ẩn phần hiển thị điểm
             document.getElementById('add-question-form').reset();
+            
+            // Bỏ khóa tất cả các input radio (nếu có)
+            const allRadioInputs = document.querySelectorAll('input[type="radio"]');
+            allRadioInputs.forEach(input => {
+                input.disabled = false;
+                if (input.parentElement && input.parentElement.parentElement) {
+                    input.parentElement.parentElement.classList.remove('locked-answer');
+                }
+            });
         }
 
         // Hàm thêm câu hỏi thủ công
         function addQuestion() {
-        const question = document.getElementById('question').value;
-        const optionA = document.getElementById('optionA').value;
-        const optionB = document.getElementById('optionB').value;
-        const optionC = document.getElementById('optionC').value;
-        const optionD = document.getElementById('optionD').value;
-        const correctOption = document.getElementById('correctOption').value;
-
-        // Kiểm tra tất cả các trường đã được điền đầy đủ
-        if (!question || !optionA || !optionB || !optionC || !optionD || !correctOption) {
-            alert("Vui lòng điền đầy đủ thông tin câu hỏi và đáp án!");
-            return; // Không thêm câu hỏi nếu có trường thông tin bị thiếu
+            const question = document.getElementById('question').value;
+            const optionA = document.getElementById('optionA').value;
+            const optionB = document.getElementById('optionB').value;
+            const optionC = document.getElementById('optionC').value;
+            const optionD = document.getElementById('optionD').value;
+            const correctOption = document.getElementById('correctOption').value;
+        
+            if (!question || !optionA || !optionB || !optionC || !optionD || !correctOption) {
+                alert("Vui lòng điền đầy đủ thông tin câu hỏi và đáp án!");
+                return;
+            }
+        
+            const options = [
+                { text: optionA, correct: correctOption === 'A' },
+                { text: optionB, correct: correctOption === 'B' },
+                { text: optionC, correct: correctOption === 'C' },
+                { text: optionD, correct: correctOption === 'D' }
+            ];
+        
+            questions.push({ 
+                question: question, 
+                options: options,
+                correctAnswer: correctOption
+            });
+        
+            shuffleQuestions();
+            displayQuestions();
+            document.getElementById('addQuestionButton').disabled = true;
+            document.getElementById('add-question-form').reset();
+            
+            // Render lại MathJax sau khi thêm câu hỏi mới
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
-
-        const options = [
-            { text: optionA, correct: correctOption === 'A' },
-            { text: optionB, correct: correctOption === 'B' },
-            { text: optionC, correct: correctOption === 'C' },
-            { text: optionD, correct: correctOption === 'D' }
-        ];
-
-        // Thêm câu hỏi vào mảng câu hỏi
-        questions.push({ question, options });
-
-        shuffleQuestions(); // Random hóa câu hỏi và đáp án
-        displayQuestions();  // Hiển thị các câu hỏi
-
-        // Vô hiệu hóa nút "Thêm câu hỏi" sau khi thêm câu hỏi
-        document.getElementById('addQuestionButton').disabled = true;
-
-        // Reset form nhập câu hỏi
-        document.getElementById('add-question-form').reset();
-    }
 
 // Kích hoạt hoặc vô hiệu hóa nút "Thêm câu hỏi" tùy vào việc nhập dữ liệu
 function toggleAddQuestionButton() {
