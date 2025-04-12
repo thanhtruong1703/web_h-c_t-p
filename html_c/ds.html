@@ -6,6 +6,18 @@
     <title>Ứng Dụng Trắc Nghiệm Tự Nhập</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+
     <style>
         .button-container {
             position: fixed; /* Cố định vị trí */
@@ -153,6 +165,59 @@
             height: 25px; /* Chiều cao */
             margin-right: 10px; /* Khoảng cách giữa checkbox và văn bản */
         }
+
+        /* Thêm vào phần CSS */
+        .MathJax {
+            display: inline !important;
+            font-size: 1.1em !important;
+        }
+        
+        /* Đảm bảo công thức toán không bị ngắt dòng */
+        mjx-container[jax="CHTML"][display="true"] {
+            display: inline !important;
+            margin: 0 !important;
+        }
+
+        .MathJax {
+            display: inline !important;
+        }
+        
+        /* Định dạng cho câu hỏi và đáp án */
+        .question-container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .question-container ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .question-container li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Định dạng badge đáp án đúng */
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        /* Đảm bảo nội dung không bị xuống dòng */
+        .answer-content {
+            display: inline;
+            white-space: normal;
+        }
+        
     </style>
 </head>
 <body>
@@ -177,41 +242,47 @@
 
             <div id="manualQuestionSection" class="mb-4">      
                 <form id="add-question-form">
-                    <h2 class="text-primary">Tạo Câu Hỏi Thủ Công </h2>
+                    <h2 class="text-primary">Tạo Câu Hỏi Thủ Công</h2>
+                    <div class="alert alert-info">
+                        <p><strong>Lưu ý:</strong> Để nhập công thức toán học, sử dụng cú pháp LaTeX giữa 2 dấu $ (ví dụ: $x^2 + y^2 = z^2$)</p>
+                    </div>
                     <div class="form-group">
                         <label for="question">Nhập Câu hỏi:</label>
-                        <input type="text" class="form-control" id="question" name="question" required oninput="toggleAddQuestionButton()">
+                        <textarea class="form-control" id="question" name="question" rows="2" required oninput="toggleAddQuestionButton()"></textarea>
                     </div>
                     
                     <div class="form-group">
                         <label for="optionA">Đáp án A:</label>
                         <div style="display: flex; align-items: center;">
-                            <input type="text" class="form-control" id="optionA" name="optionA" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <textarea class="form-control" id="optionA" name="optionA" rows="2" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;"></textarea>
                             <input type="checkbox" id="correctA" onclick="toggleCorrectAnswer('A')"> Đúng
                         </div>
                     </div>
+                    
                     <div class="form-group">
                         <label for="optionB">Đáp án B:</label>
                         <div style="display: flex; align-items: center;">
-                            <input type="text" class="form-control" id="optionB" name="optionB" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <textarea class="form-control" id="optionB" name="optionB" rows="2" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;"></textarea>
                             <input type="checkbox" id="correctB" onclick="toggleCorrectAnswer('B')"> Đúng
                         </div>
                     </div>
+                    
                     <div class="form-group">
                         <label for="optionC">Đáp án C:</label>
                         <div style="display: flex; align-items: center;">
-                            <input type="text" class="form-control" id="optionC" name="optionC" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <textarea class="form-control" id="optionC" name="optionC" rows="2" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;"></textarea>
                             <input type="checkbox" id="correctC" onclick="toggleCorrectAnswer('C')"> Đúng
                         </div>
                     </div>
+                    
                     <div class="form-group">
                         <label for="optionD">Đáp án D:</label>
                         <div style="display: flex; align-items: center;">
-                            <input type="text" class="form-control" id="optionD" name="optionD" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;">
+                            <textarea class="form-control" id="optionD" name="optionD" rows="2" required oninput="toggleAddQuestionButton()" style="margin-right: 10px;"></textarea>
                             <input type="checkbox" id="correctD" onclick="toggleCorrectAnswer('D')"> Đúng
                         </div>
                     </div>
-
+            
                     <button type="button" class="btn btn-primary" id="addQuestionButton" onclick="addQuestion()" disabled>Thêm câu hỏi</button>
                 </form>
             </div>
@@ -646,6 +717,11 @@ function updateStartButtonState() {
             let isValidFormat = true;
         
             lines.forEach(line => {
+                // Xử lý công thức toán học
+                line = line.replace(/\$\$(.*?)\$\$/g, '\\[$1\\]')
+                           .replace(/\\\((.*?)\\\)/g, '\\($1\\)')
+                           .replace(/\\\[(.*?)\\\]/g, '\\[$1\\]');
+        
                 if (line.startsWith('Câu hỏi:')) {
                     if (currentQuestion) {
                         questions.push(currentQuestion);
@@ -685,15 +761,15 @@ function updateStartButtonState() {
             if (isValidFormat && questions.length > 0) {
                 displayAddedQuestions();
                 document.getElementById('startBtn').disabled = false;
+                // Render lại MathJax sau khi hiển thị câu hỏi
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.typesetPromise();
+                }
             } else {
                 document.getElementById('fileUploadFeedback').innerHTML = 'Định dạng file không đúng. Vui lòng kiểm tra lại.';
                 document.getElementById('fileUploadFeedback').style.color = 'red';
                 document.getElementById('startBtn').disabled = true;
             }
-
-            //console.log("Correct Answers:", currentQuestion.correctOptions.correct);
-            //console.log("Incorrect Answers:", currentQuestion.correctOptions.incorrect);
-            //console.log("--------------------------------------------------------------");
         }
 
         function toggleStartButton() {
@@ -707,7 +783,7 @@ function updateStartButtonState() {
         function displayAddedQuestions() {
             const container = document.getElementById('addedQuestionsContainer');
             container.innerHTML = '';
-
+        
             questions.forEach((q, index) => {
                 const questionHTML = `
                     <div class="question-container">
@@ -722,6 +798,11 @@ function updateStartButtonState() {
                 `;
                 container.innerHTML += questionHTML;
             });
+        
+            // Render lại MathJax sau khi hiển thị câu hỏi
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise();
+            }
         }
 
         function toggleCorrectAnswer(option) {
@@ -745,14 +826,14 @@ function updateStartButtonState() {
             const optionB = document.getElementById('optionB').value.trim();
             const optionC = document.getElementById('optionC').value.trim();
             const optionD = document.getElementById('optionD').value.trim();
-
+        
+            const hasCorrectAnswer = document.getElementById('correctA').checked || 
+                                   document.getElementById('correctB').checked || 
+                                   document.getElementById('correctC').checked || 
+                                   document.getElementById('correctD').checked;
+        
             const button = document.getElementById('addQuestionButton');
-
-            if (question && optionA && optionB && optionC && optionD && correctAnswers.length > 0) {
-                button.disabled = false;
-            } else {
-                button.disabled = true;
-            }
+            button.disabled = !(question && optionA && optionB && optionC && optionD && hasCorrectAnswer);
         }
 
         function addQuestion() {
@@ -761,20 +842,46 @@ function updateStartButtonState() {
                 A: document.getElementById('optionA').value.trim(),
                 B: document.getElementById('optionB').value.trim(),
                 C: document.getElementById('optionC').value.trim(),
-                D: document.getElementById('optionD').value.trim(),
+                D: document.getElementById('optionD').value.trim()
             };
-
-            questions.push({ question, options, correctAnswers: [...correctAnswers] });
-
+        
+            // Tạo mảng chứa các đáp án đúng
+            const correctOptions = [];
+            if (document.getElementById('correctA').checked) correctOptions.push('A');
+            if (document.getElementById('correctB').checked) correctOptions.push('B');
+            if (document.getElementById('correctC').checked) correctOptions.push('C');
+            if (document.getElementById('correctD').checked) correctOptions.push('D');
+        
+            // Tạo mảng chứa các đáp án sai
+            const allOptions = ['A', 'B', 'C', 'D'];
+            const incorrectOptions = allOptions.filter(option => !correctOptions.includes(option));
+        
+            // Thêm câu hỏi vào mảng
+            questions.push({
+                question: question,
+                options: options,
+                correctOptions: {
+                    correct: correctOptions,
+                    incorrect: incorrectOptions
+                }
+            });
+        
+            // Hiển thị câu hỏi đã thêm
             displayAddedQuestions();
-
+        
+            // Reset form
             document.getElementById('add-question-form').reset();
             document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-
             correctAnswers = [];
             toggleAddQuestionButton();
-
+        
+            // Kích hoạt nút "Làm bài"
             document.getElementById('startBtn').disabled = false;
+        
+            // Render lại MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
 
         function shuffleArray(array) {
@@ -793,7 +900,7 @@ function updateStartButtonState() {
             document.getElementById('fileInputSection').style.display = 'none';
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('quizContent').style.display = 'block';
-
+        
             const quizContent = document.getElementById('quizContent');
             quizContent.innerHTML = '';
             questions.forEach((q, index) => {
@@ -803,14 +910,14 @@ function updateStartButtonState() {
                     { key: 'C', value: q.options.C },
                     { key: 'D', value: q.options.D }
                 ];
-
+        
                 shuffleArray(optionsArray);
-
+        
                 let questionHTML = `
                     <div class="question-container">
                         <p><strong>Câu hỏi ${index + 1}: ${q.question}</strong></p>
                 `;
-
+        
                 optionsArray.forEach(option => {
                     questionHTML += `
                         <div>
@@ -818,13 +925,23 @@ function updateStartButtonState() {
                         </div>
                     `;
                 });
-
+        
                 questionHTML += '</div>';
                 quizContent.innerHTML += questionHTML;
             });
-
+        
             document.getElementById('submitBtn').style.display = 'inline-block';
+            
+            // Render lại MathJax sau khi hiển thị câu hỏi
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise();
+            }
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
+
+
         function goBack() {
             window.history.back();
         }
@@ -963,7 +1080,7 @@ function updateStartButtonState() {
             document.getElementById('backBtn').style.display = 'inline-block';
         
             // Lưu điểm vào bảng xếp hạng
-           // saveRank(userlocal.name, earnedPoints.toFixed(1));
+            saveRank(userlocal.name, earnedPoints.toFixed(1));
         }
 
         function backToStart() {
