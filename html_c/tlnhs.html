@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRẢ LỜI NGẮN</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -168,19 +168,19 @@
         }
         .error { border-color: #dc3545 !important; }
         .success { border-color: #28a745 !important; }
-        .hidden-section {
-            display: none !important;
-        }
-        .disabled-btn {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
         .math-formula {
             background-color: #f0f0f0;
             padding: 5px;
             border-radius: 3px;
             margin: 5px 0;
             display: inline-block;
+        }
+        .hidden-section {
+            display: none !important;
+        }
+        .disabled-btn {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -200,6 +200,7 @@
                 <div id="fileList" class="file-list-container mt-3" style="display: none;"></div>
             </div>
             
+            <!-- Ẩn phần tải file lên -->
             <div class="section hidden-section">
                 <h3 class="mb-3">Tải file câu hỏi</h3>
                 <div class="file-input-group">
@@ -207,13 +208,9 @@
                     <button class="btn btn-primary" id="loadButton">loadFile</button>
                 </div>
                 <div id="fileFeedback" class="mt-2"></div>
-                
-                <form id="container" oninput="checkdulieu()"></form>
-                <div class="button-group">
-                    <button class="btn btn-primary" type="submit" id="submit-bt" disabled>Xử Lý File</button>
-                </div>
             </div>
 
+            <!-- Ẩn phần tạo câu hỏi thủ công -->
             <div class="section hidden-section">
                 <h3 class="mb-3">Tạo câu hỏi thủ công</h3>
                 <h4 id="baoloi" class="alert">Số câu hỏi phải lớn hơn 0</h4>
@@ -249,28 +246,11 @@
         let answers = [];
         let diemchuan = 0;
         let n;
+        let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
 
         function goBack() {
             window.history.back();
         }
-
-
-        function normalizeMathFormulas(text) {
-            // Chuyển đổi công thức toán học từ Word sang định dạng MathJax
-            if (text.includes('∫') || text.includes('∑') || text.includes('√') || 
-                text.includes('^') || text.includes('_') || text.includes('∞')) {
-                text = text.replace(/(\$\$)(.*?)(\$\$)/g, '\\($2\\)');
-            }
-            
-            // Xử lý các ký tự đặc biệt
-            text = text.replace(/\\_/g, "_")
-                      .replace(/\\\*/g, "*")
-                      .replace(/\\\^/g, "^");
-            
-            return text;
-        }
-        text = normalizeMathFormulas(text);
-
 
         // Khởi tạo IndexedDB
         function initDB() {
@@ -339,30 +319,6 @@
             }
         }
 
-        // Xóa file từ IndexedDB
-        async function deleteFileFromDB(fileId) {
-            try {
-                await initDB();
-                
-                return new Promise((resolve, reject) => {
-                    const transaction = db.transaction(["tlnfiles"], "readwrite");
-                    const store = transaction.objectStore("tlnfiles");
-                    const request = store.delete(fileId);
-                    
-                    request.onsuccess = function() {
-                        resolve(true);
-                    };
-                    
-                    request.onerror = function(event) {
-                        reject(event.target.error);
-                    };
-                });
-            } catch (error) {
-                console.error("Error deleting file:", error);
-                throw error;
-            }
-        }
-
         // Hiển thị danh sách file
         async function displayFileList() {
             try {
@@ -405,6 +361,22 @@
                     btn.addEventListener("click", async function() {
                         const fileId = this.getAttribute("data-id");
                         await loadSavedFile(fileId);
+                    });
+                });
+                
+                // Vô hiệu hóa sự kiện xóa file
+                document.querySelectorAll(".delete-file").forEach(btn => {
+                    btn.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        alert("Chức năng xóa file đã bị vô hiệu hóa");
+                    });
+                });
+        
+                // Vô hiệu hóa sự kiện tải file
+                document.querySelectorAll(".download-file").forEach(btn => {
+                    btn.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        alert("Chức năng tải file đã bị vô hiệu hóa");
                     });
                 });
             } catch (error) {
@@ -458,83 +430,59 @@
             }
         }
 
-        let userlocal = JSON.parse(localStorage.getItem("userlogin")) || [];
-        
-        function saveRank(name, newScore) {
-            openDB(() => {
-                const transaction = db.transaction(["rank"], "readwrite");
-                const store = transaction.objectStore("rank");
-
-                const request = store.get(name);
-
-                request.onsuccess = function () {
-                    const existingEntry = request.result;
-
-                    if (existingEntry) {
-                        existingEntry.score += parseFloat(newScore);
-
-                        const updateRequest = store.put(existingEntry);
-                        updateRequest.onsuccess = function () {
-                            console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
-                        };
-                        updateRequest.onerror = function () {
-                            console.error("Error updating score");
-                        };
-                    } else {
-                        const newEntry = { name: name, score: parseFloat(newScore) };
-                        const addRequest = store.add(newEntry);
-
-                        addRequest.onsuccess = function () {
-                            console.log("New rank data added successfully!");
-                        };
-                        addRequest.onerror = function () {
-                            console.error("Error adding new rank data");
-                        };
-                    }
-                };
-
-                request.onerror = function () {
-                    console.error("Error checking existing entry");
-                };
-            });
+        // Chuẩn hóa công thức toán học
+        function normalizeMathFormulas(text) {
+            // Chuyển đổi công thức toán học từ Word sang định dạng MathJax
+            if (text.includes('∫') || text.includes('∑') || text.includes('√') || 
+                text.includes('^') || text.includes('_') || text.includes('∞')) {
+                text = text.replace(/(\$\$)(.*?)(\$\$)/g, '\\($2\\)');
+            }
+            
+            // Xử lý các ký tự đặc biệt
+            text = text.replace(/\\_/g, "_")
+                      .replace(/\\\*/g, "*")
+                      .replace(/\\\^/g, "^");
+            
+            return text;
         }
 
-        function openDB(callback) {
-            if (db) {
-                callback();
-                return;
-            }
+        // Hàm lưu điểm vào bảng xếp hạng
+        function saveRank(name, newScore) {
+            const transaction = db.transaction(["rank"], "readwrite");
+            const store = transaction.objectStore("rank");
 
-            const request = indexedDB.open("FileStorageDB", 4);
+            const request = store.get(name);
 
-            request.onupgradeneeded = function (event) {
-                db = event.target.result;
+            request.onsuccess = function() {
+                const existingEntry = request.result;
 
-                if (!db.objectStoreNames.contains("dsfiles")) {
-                    db.createObjectStore("dsfiles", { keyPath: "id" });
-                }
+                if (existingEntry) {
+                    // Cộng dồn điểm số mới vào điểm số cũ
+                    existingEntry.score += parseFloat(newScore);
 
-                if (!db.objectStoreNames.contains("files")) {
-                    db.createObjectStore("files", { keyPath: "id" });
-                }
+                    const updateRequest = store.put(existingEntry);
+                    updateRequest.onsuccess = function() {
+                        console.log(`Score updated successfully! New total score: ${existingEntry.score}`);
+                    };
+                    updateRequest.onerror = function() {
+                        console.error("Error updating score");
+                    };
+                } else {
+                    // Nếu chưa có dữ liệu, thêm mới
+                    const newEntry = { name: name, score: parseFloat(newScore) };
+                    const addRequest = store.add(newEntry);
 
-                if (!db.objectStoreNames.contains("tlnfiles")) {
-                    db.createObjectStore("tlnfiles", { keyPath: "id" });
-                }
-
-                if (!db.objectStoreNames.contains("rank")) {
-                    const rankStore = db.createObjectStore("rank", { keyPath: "name" });
-                    rankStore.createIndex("score", "score", { unique: false });
+                    addRequest.onsuccess = function() {
+                        console.log("New rank data added successfully!");
+                    };
+                    addRequest.onerror = function() {
+                        console.error("Error adding new rank data");
+                    };
                 }
             };
 
-            request.onsuccess = function (event) {
-                db = event.target.result;
-                callback();
-            };
-
-            request.onerror = function (event) {
-                console.error("❌ Lỗi mở IndexedDB:", event.target.error);
+            request.onerror = function() {
+                console.error("Error checking existing entry");
             };
         }
 
@@ -591,7 +539,7 @@
             let dem = 0;
             
             data2.forEach((ans, index) => {
-                if (ans && ans === answers[index]) {
+                if (ans && ans.trim().toLowerCase() === answers[index].trim().toLowerCase()) {
                     dem++;
                 } 
             });
@@ -605,8 +553,9 @@
             document.getElementById("scoreValue").innerHTML = diem;
             document.getElementById("scoreDisplay").style.display = "block";
             document.getElementById("nop_bai").disabled = true;
+            document.getElementById("back").style.display = "block";
 
-            saveRank(userlocal.name,diem.toFixed(2));
+            saveRank(userlocal.name, diem);
         });
 
         // Xử lý quay lại
@@ -621,11 +570,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             initDB().catch(error => {
                 console.error("Không thể khởi tạo cơ sở dữ liệu:", error);
-            });
-            
-            // Ẩn các phần không cần thiết ngay khi tải trang
-            document.querySelectorAll('.hidden-section').forEach(section => {
-                section.style.display = 'none';
             });
         });
     </script>
